@@ -1,7 +1,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include "../headers/defs.h"
+#include "../../headers/defs.h"
 
 //prints a line of "space" aka " "
 void dynamic_linespace(int text_constant, int txt_indent, int txt_margin, int lines){
@@ -53,7 +53,7 @@ void dynamic_line_print(char *string, int text_const, int txt_indent, int txt_ma
             j = 0;
             continue;
         }
-        if(i+1 == arraysize){//causing line cliping on last char of a string
+        if(i+1 == arraysize){//causing line cliping on last char of a string if its a single line print
             printf("%*c|\n", text_const-j + txt_margin, space);
             continue;
         }
@@ -111,6 +111,10 @@ int menuPrint(char *menuSection, int padding_top, int padding_bottom){
 
 int advancedPrint(char *input, int padding_top, int padding_bottom){
     if(input == NULL) return -1;
-    printToScreen(input, padding_top, padding_bottom);
+    char *resize = malloc(sizeof(char) * strlen(input)+1);
+    strcpy(resize, input);
+    strcat(resize, " ");
+    printToScreen(resize, padding_top, padding_bottom);
+    free(resize);
     return 0;
 }
