@@ -1,6 +1,8 @@
 #include <stdio.h>
+#include <stdlib.h>
+#include "../headers/screenPrint.h"
 
 int main(){
-    printf("hello world");
+    advancedPrint("hello world", 1, 1);
     return 0;
 }
