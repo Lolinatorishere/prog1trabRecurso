@@ -20,5 +20,11 @@
     #define isasciinum(STRING)\
         if(STRING >= 48 && STRING <= 57)
     #endif
+    #ifndef USERDATA
+        #define USERDATA "./Data/userData.dat"
+    #endif
+    #ifndef EVENTDATA
+        #define EVENTDATA "./Data/eventData.dat"
+    #endif
 
 #endif
