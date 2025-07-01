@@ -11,6 +11,7 @@ USERS setUser(){
         user.userName[i] = '\0';
         user.password[i] = '\0';
     }
+    user.alunoId = -1;
     user.type = -1;
     user.userId = -1;
     return user;
@@ -30,6 +31,7 @@ void copyUser(USERS *dst, USERS src){
         dst[0].password[i] = '\0';
     }
     dst[0].type = src.type;
+    dst[0].alunoId = src.alunoId;
     dst[0].userId = src.userId;
 }
 
@@ -148,6 +150,7 @@ int createUserString(char **string, USERS *users,int userTotal, int usersPerPage
     /*
      * / Id:id
      * | Type: type
+     * | Aluno: id
      * | name:
      * \ pwd:
     */
@@ -155,6 +158,7 @@ int createUserString(char **string, USERS *users,int userTotal, int usersPerPage
     char buffer[TXT_CONST];
     int ut_id = strlen(" / Id:");
     int ut_type = strlen(" | Tipo:");
+    int ut_alun = strlen(" | Aluno:");
     int ut_name = strlen(" | Nome:");
     int ut_pwd = strlen(" \\ Pwd:");
     strcpy((*string), "\0");
@@ -167,6 +171,8 @@ int createUserString(char **string, USERS *users,int userTotal, int usersPerPage
         strcat((*string), buffer); index += strlen(buffer);
         strcat((*string), " | Type:"); index += ut_type;
         sprintf(buffer, "%i\n", user.type);
+        strcat((*string), " | Aluno:"); index += ut_alun;
+        sprintf(buffer, "%i\n", user.alunoId);
         strcat((*string), buffer); index += strlen(buffer);
         strcat((*string), " | Name:"); index += ut_name;
         int name_len = strlen(user.userName);
@@ -234,6 +240,7 @@ int createUser(char *username, char *password, int type){
     else newUser->type = type;
     if (userTotal == 0) newUser->userId = 1;
     else newUser->userId = users[userTotal - 1].userId + 1;
+    newUser->alunoId = -1;
     userTotal++;
     if(updateUserData(users, userTotal) == -1)
         return -1;
@@ -241,7 +248,7 @@ int createUser(char *username, char *password, int type){
     return 1;
 }
 
-int updateUser(int id, char *username, char *password, int *type){
+int updateUser(int id, char *username, char *password, int *type, int *alunoId){
     if(username[0] == '\0' && password[0] == '\0' && type == NULL)return 1;
     int error = 0;
     int64_t index = 0;
@@ -276,6 +283,8 @@ int updateUser(int id, char *username, char *password, int *type){
             }
             if(type != NULL)
                 users[index].type = *type;
+            if(alunoId != NULL)
+                users[index].alunoId = *alunoId;
             updateUserData(users, userTotal);
             break;
     }

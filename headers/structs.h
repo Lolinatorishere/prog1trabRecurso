@@ -5,30 +5,40 @@
 typedef struct users{
     int userId;
     int type;
+    int alunoId;
     char userName[256];
     char password[256];
 }USERS;
 
 typedef struct students{
     int alunoId;
-    int userId;
+    char name[256];
 }STUDENTS;
 
 typedef struct studentlist{
-    STUDENTS aluno;
+    STUDENTS *aluno;
+    //int participa; redundant, can just remove if not participating
     struct studentlist *next;
     struct studentlist *prev;
 }STUDENTLIST;
 
-typedef struct eventos{
+typedef struct studentQueue{
+    int total;
+    STUDENTLIST *head;
+    STUDENTLIST *tail;
+}STUDENTQUEUE;
+
+//ID ´unico, nome do evento, data, local, n´umero m´aximo de participantes, descricao e estado (ativo, cancelado, concluido).
+typedef struct events{
     int eventID;
-    int status;
-    int limit;
-    int subs;
-    STUDENTLIST *listhead;
+    char name[256];
     time_t date;//unix time, aka seconds since 1970
     char dateString[32]; //self described
-}EVENTOS;
+    char location[256];
+    int limit; //max students
+    int status; //-1 canceled, 0 planned, 1 concluded
+    STUDENTQUEUE queuehead;//takes care of max and subbed
+}EVENTS;
 
 typedef struct notif{
     int eventoID;

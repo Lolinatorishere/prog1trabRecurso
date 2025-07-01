@@ -53,7 +53,11 @@ void dynamic_line_print(char *string, int text_const, int txt_indent, int txt_ma
             j = 0;
             continue;
         }
-        if(i+1 == arraysize){//causing line cliping on last char of a string if its a single line print
+        //causing line cliping on last char of a string if its a single line print
+        //fix is to add a sacrificial char to the system, i need to do this because
+        //for some godforsaken reason c stores EOF as a char, so file reading dies
+        //here if this doesnt exist.
+        if(i+1 == arraysize){
             printf("%*c|\n", text_const-j + txt_margin, space);
             continue;
         }
@@ -63,7 +67,7 @@ void dynamic_line_print(char *string, int text_const, int txt_indent, int txt_ma
 }
 
 int readMenuFile(char *menuSection, char **menuText){
-    char *dir = malloc(sizeof(char)*256);
+    char *dir = malloc(sizeof(char) * strlen(menuSection) + strlen("./menus/") + 128); //128 to stop segfaults;
     if(!dir)return -1;
     strcpy(dir, "./menus/");
     strcat(dir, menuSection);

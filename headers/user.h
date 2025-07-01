@@ -1,7 +1,6 @@
-#include "./structs.h"
-
 #ifndef LOGIN_H
 #define LOGIN_H
+#include "./structs.h"
 
 USERS setUser();
 
@@ -9,7 +8,7 @@ int64_t readTotalUsers();
 
 int createUser(char *username, char *password, int type);
 
-int updateUser(int id, char *username, char *password, int *type);
+int updateUser(int id, char *username, char *password, int *type, int *alunoId);
 
 int deleteUser(int userId);
 
