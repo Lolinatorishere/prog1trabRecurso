@@ -1,13 +1,18 @@
+//c libraries
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 #include <unistd.h>
 #include <stdbool.h>
+//my files
 #include "../../headers/defs.h"
 #include "../../headers/screenPrint.h"
-#include "../../headers/user.h"
 #include "../../headers/stringParse.h"
 #include "../../headers/Menus/menuMiddleware.h"
+#include "../../headers/user.h"
+#include "../../headers/student.h"
+//copy paste menus code legibility.
+//may fk with compiler errors
 #include "./Menus/userMenus.c"
 
 int startUpCheck(){

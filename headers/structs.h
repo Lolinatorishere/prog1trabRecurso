@@ -1,23 +1,25 @@
 #ifndef STRUCTS_H
 #define STRUCTS_H
 #include <time.h>
+#include <stdbool.h>
 
 typedef struct users{
     int userId;
     int type;
-    int alunoId;
+    int studentId;
     char userName[256];
     char password[256];
 }USERS;
 
 typedef struct students{
-    int alunoId;
+    int studentId;
+    int userId;
     char name[256];
 }STUDENTS;
 
 typedef struct studentlist{
-    STUDENTS *aluno;
-    //int participa; redundant, can just remove if not participating
+    int studentId;
+    bool participou;
     struct studentlist *next;
     struct studentlist *prev;
 }STUDENTLIST;

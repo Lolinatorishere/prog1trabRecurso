@@ -12,7 +12,7 @@ int addPageInfo(char **string, int page, int itemsPerPage, int itemTotal, char *
     char pageInfo[256] = {'\0'};
     char pageCur[256] = {'\0'};
     char pagetotal[1024] = {'\0'};
-    int maxUserPrint = 0;
+    int maxItemPrint = 0;
     int maxPages = itemTotal/itemsPerPage;
     strcpy(pageExtras, "\n+ pagina seguinte \n- pagina anterior\n");
     if(specialCtrls != NULL){
@@ -27,12 +27,12 @@ int addPageInfo(char **string, int page, int itemsPerPage, int itemTotal, char *
     strcat(pageExtras, "0 sair\n");
     if(itemTotal%itemsPerPage != 0) maxPages++;
     if((page+1) * itemsPerPage > itemTotal){
-        maxUserPrint = itemTotal;
+        maxItemPrint = itemTotal;
     }else{
-        maxUserPrint = itemsPerPage*(page+1);
+        maxItemPrint = itemsPerPage*(page+1);
     }
     sprintf(pageCur,"pagina %i de %i", (page+1), maxPages);
-    sprintf(pageInfo,"%s %i a %i", itemType, (page*itemsPerPage)+1, maxUserPrint);
+    sprintf(pageInfo,"%s %i a %i", itemType, (page*itemsPerPage)+1, maxItemPrint);
     if(strlen(pageCur) + strlen(pageInfo) < TXT_CONST){
         centerString(TXT_CONST/2, pageCur);
         centerString(TXT_CONST/2, pageInfo);

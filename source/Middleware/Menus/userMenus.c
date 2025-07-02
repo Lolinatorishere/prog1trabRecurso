@@ -92,7 +92,7 @@ void userDeleteMenu(USERS adminUser){
                 advancedPrint("Nao se pode apagar o utilizador proprio\n", 1, 1);
                 continue;
             }
-            if(getUserWithId(&user, selectedID) != 0){
+            if(getUser(&user, selectedID) != 0){
                 if(menuText != NULL) free(menuText);
                 menuPrint("userNonExists", 1, 1);
                 sleep(1);
@@ -246,7 +246,7 @@ void editingUser(char *buffer, char *menuText, USERS adminUser, int page){
         *alunoId = NULL,
         selectedID = 0;
     selectedID = int64FromString(buffer);
-    if(getUserWithId(&user, selectedID) < 0){
+    if(getUser(&user, selectedID) < 0){
         if(menuText != NULL) free(menuText);
         return;
     }

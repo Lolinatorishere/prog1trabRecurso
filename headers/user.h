@@ -1,5 +1,5 @@
-#ifndef LOGIN_H
-#define LOGIN_H
+#ifndef USER_H
+#define USER_H
 #include "./structs.h"
 #include "stdbool.h"
 
@@ -9,7 +9,7 @@ int64_t readTotalUsers();
 
 int createUser(char *username, char *password, int type);
 
-int updateUser(int id, char *username, char *password, int *type, int *alunoId);
+int updateUser(int id, char *username, char *password, int *type, int *studentId);
 
 int deleteUser(int userId);
 
@@ -24,6 +24,6 @@ int searchForUserId(char **string, int search, int usersPerPage, int page);
 
 int searchForUserType(char **string, USERS **userList, int64_t *totalUsers, int search, int usersPerPage, int *page);
 
-int getUserWithId(USERS *user, int id);
+int getUser(USERS *user, int id);
 
 #endif

@@ -13,7 +13,7 @@ USERS setUser(){
         user.userName[i] = '\0';
         user.password[i] = '\0';
     }
-    user.alunoId = -1;
+    user.studentId = -1;
     user.type = -1;
     user.userId = -1;
     return user;
@@ -36,7 +36,7 @@ void copyUser(USERS *dst, USERS src){
         dst[0].password[i] = '\0';
     }
     dst[0].type = src.type;
-    dst[0].alunoId = src.alunoId;
+    dst[0].studentId = src.studentId;
     dst[0].userId = src.userId;
 }
 
@@ -84,9 +84,9 @@ USERS *searchId(USERS *userList, int64_t listSize, int id, int64_t *index) {
     return NULL; 
 }
 
-USERS *searchAlunoId(USERS *userList, int64_t listSize, int *alunoId, int64_t *index) { // very slow
+USERS *searchStudentId(USERS *userList, int64_t listSize, int *studentId, int64_t *index) { // very slow
     for(int64_t i = 0 ; i < listSize ; i++){
-        if(userList[i].alunoId != *alunoId)continue;
+        if(userList[i].studentId != *studentId)continue;
         return &userList[i];
     }
     return NULL;
@@ -176,7 +176,7 @@ int createUserString(char **string, USERS *users, int userTotal, int usersPerPag
     *string = malloc(sizeof(char) * (usersPerPage * (700)));
     int index = 0;
     char buffer[TXT_CONST];
-    int ut_id = strlen(" / Id:");
+    int ut_id = strlen(" / alunoId:");
     int ut_type = strlen(" | Tipo:");
     int ut_alun = strlen(" | Aluno:");
     int ut_name = strlen(" | Nome:");
@@ -191,8 +191,9 @@ int createUserString(char **string, USERS *users, int userTotal, int usersPerPag
         strcat((*string), buffer); index += strlen(buffer);
         strcat((*string), " | Type:"); index += ut_type;
         sprintf(buffer, "%i\n", user.type);
+        strcat((*string), buffer); index += strlen(buffer);
         strcat((*string), " | Aluno:"); index += ut_alun;
-        sprintf(buffer, "%i\n", user.alunoId);
+        sprintf(buffer, "%i\n", user.studentId);
         strcat((*string), buffer); index += strlen(buffer);
         strcat((*string), " | Name:"); index += ut_name;
         int name_len = strlen(user.userName);
@@ -260,7 +261,7 @@ int createUser(char *username, char *password, int type){
     else newUser->type = type;
     if (userTotal == 0) newUser->userId = 1;
     else newUser->userId = users[userTotal - 1].userId + 1;
-    newUser->alunoId = -1;
+    newUser->studentId = -1;
     userTotal++;
     if(updateUserData(users, userTotal) == -1)
         return -1;
@@ -268,8 +269,8 @@ int createUser(char *username, char *password, int type){
     return 1;
 }
 
-int updateUser(int id, char *username, char *password, int *type, int *alunoId){
-    if(username[0] == '\0' && password[0] == '\0' && type == NULL && alunoId == NULL)return 1;
+int updateUser(int id, char *username, char *password, int *type, int *studentId){
+    if(username[0] == '\0' && password[0] == '\0' && type == NULL && studentId == NULL)return 1;
     int error = 0;
     int64_t index = 0;
     int64_t userTotal = readTotalUsers();
@@ -303,8 +304,8 @@ int updateUser(int id, char *username, char *password, int *type, int *alunoId){
             }
             if(type != NULL)
                 users[index].type = *type;
-            if(alunoId != NULL)
-                users[index].alunoId = *alunoId;
+            if(studentId != NULL)
+                users[index].studentId = *studentId;
             updateUserData(users, userTotal);
             break;
     }
@@ -371,7 +372,7 @@ bool userValidate(char *username,char *password, USERS *user){
         strcpy(user->password, users[i].password);
         user->type = users[i].type;
         user->userId = users[i].userId;
-        user->alunoId = users[i].alunoId;
+        user->studentId = users[i].studentId;
         break;
     }
     free(users);
@@ -497,7 +498,7 @@ int searchForUserType(char **string, USERS **userList, int64_t *totalUsers, int 
     return 0;
 }
 
-int getUserWithId(USERS *user, int id){
+int getUser(USERS *user, int id){
     int64_t userTotal = readTotalUsers();
     int64_t index = 0;
     USERS *temp;
