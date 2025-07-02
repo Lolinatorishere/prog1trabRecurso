@@ -1,6 +1,7 @@
 #ifndef LOGIN_H
 #define LOGIN_H
 #include "./structs.h"
+#include "stdbool.h"
 
 USERS setUser();
 
@@ -12,9 +13,10 @@ int updateUser(int id, char *username, char *password, int *type, int *alunoId);
 
 int deleteUser(int userId);
 
-int userValidate(char *username,char *password, USERS *user);
+bool userValidate(char *username,char *password, USERS *user);
 
-int showAllUsers(char **string, int usersPerPage, int *page, char *extras);
+//returns a string with all users formated
+int getAllUsers(char **string, int usersPerPage, int *page, char *extras);
 
 int searchForUsername(char **string, char *search, int usersPerPage, int page);
 

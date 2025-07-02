@@ -1,6 +1,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <stdbool.h>
 #include "../../headers/structs.h"
 #include "../../headers/stringParse.h"
 #include "../../headers/defs.h"
@@ -18,6 +19,9 @@ USERS setUser(){
 }
 
 void copyUser(USERS *dst, USERS src){
+    //doing it like this because of gdb
+    //if not done instead of appearing "string" <000> repeats n times
+    //it will have "string"<000> random non wiped memory
     for(int i = 0 ; i < strlen(src.userName) ; i++){
         dst[0].userName[i] = src.userName[i];
     }
@@ -35,7 +39,7 @@ void copyUser(USERS *dst, USERS src){
     dst[0].userId = src.userId;
 }
 
-USERS *searchUsername(USERS *userList, int64_t listSize, char *username, int64_t *index) {
+USERS *searchUsername(USERS *userList, int64_t listSize, char *username, int64_t *index) { // very slow
     int ulen = strlen(username);
     for(int64_t i = 0 ; i < listSize ; i++){
         int check = 0;
@@ -61,7 +65,8 @@ int searchWithType(USERS *userList, USERS *hits, int64_t listSize, int64_t *hit_
     return 0;
 }
 
-//This is assuming the ids in the List are sequential0
+//This is assuming the ids in the List are sequential which they absolutely should be
+//binary searches the requested id
 USERS *searchId(USERS *userList, int64_t listSize, int id, int64_t *index) {
     int64_t low = 0, high = listSize - 1;
     while (low <= high) {
@@ -76,6 +81,14 @@ USERS *searchId(USERS *userList, int64_t listSize, int id, int64_t *index) {
         }
     }
     return NULL; 
+}
+
+USERS *searchAlunoId(USERS *userList, int64_t listSize, int *alunoId, int64_t *index) { // very slow
+    for(int64_t i = 0 ; i < listSize ; i++){
+        if(userList[i].alunoId != *alunoId)continue;
+        return &userList[i];
+    }
+    return NULL;
 }
 
 int updateUserData(USERS userList[], int64_t listSize){
@@ -94,10 +107,12 @@ int64_t readTotalUsers(){
     int64_t totalUsers = 0;
     FILE *fp = fopen(USERDATA, "rb");
     if(!fp){
+        //guarantees the existance of USERDATA dir file
         FILE *makeFile = fopen(USERDATA, "wb");
         fclose(makeFile);
         fp = fopen(USERDATA, "rb");
         if(!fp)
+            //or not, something wack has happened
             return 0;
     }
     fseek(fp, 0, SEEK_END);
@@ -134,26 +149,30 @@ int loadUserData(USERS *userList) {
     return 0;
 }
 
+//deprecated
+//causes malloc prev vs next courruption errors more frequently for some god forsaken reason
 void freeUserData(USERS **userList) {
     if(!userList)
         return;
     free(*userList);
 }
 
-//this is seperate because it can be reused for other funcitons if given other user arrays
+//this is seperate because it can be reused for other funcitons, if given other user arrays
+//like search for users with type returns multiple users:
+//or just a single user like with id serach or uname search
 
-int createUserString(char **string, USERS *users,int userTotal, int usersPerPage, int page){
+int createUserString(char **string, USERS *users, int userTotal, int usersPerPage, int page){
     //64 for special chars like |,/,\,_,\n name, type, pwd and id
     // 256 * 2 name and pwd, 64, 32 for type and 32 for id all in chars
     // 700 total for memory reasons, dont want buffer overflows
-    *string = malloc(sizeof(char) * (usersPerPage * (700)));
-    /*
+    /* should return something with this type of structure
      * / Id:id
      * | Type: type
      * | Aluno: id
      * | name:
      * \ pwd:
     */
+    *string = malloc(sizeof(char) * (usersPerPage * (700)));
     int index = 0;
     char buffer[TXT_CONST];
     int ut_id = strlen(" / Id:");
@@ -322,7 +341,7 @@ int deleteUser(int id){
     }
 }
 
-int userValidate(char *username,char *password, USERS *user){
+bool userValidate(char *username,char *password, USERS *user){
     int64_t userTotal = 0;
     int checks = 0;
     userTotal = readTotalUsers();
@@ -351,6 +370,7 @@ int userValidate(char *username,char *password, USERS *user){
         strcpy(user->password, users[i].password);
         user->type = users[i].type;
         user->userId = users[i].userId;
+        user->alunoId = users[i].alunoId;
         break;
     }
     free(users);
@@ -358,68 +378,7 @@ int userValidate(char *username,char *password, USERS *user){
     return 0;
 }
 
-int addPageInfo(char **string, int page, int usersPerPage, int userTotal, char *special){
-    char *pageExtras = malloc(sizeof(char)*256);
-    char pageInfo[256] = {'\0'};
-    char pageCur[256] = {'\0'};
-    char pagetotal[1024] = {'\0'};
-    int maxUserPrint = 0;
-    int maxPages = userTotal/usersPerPage;
-    strcpy(pageExtras, "\n+ pagina seguinte \n- pagina anterior\n");
-    if(special != NULL){
-        char *tmpctrls = realloc(pageExtras, sizeof(char) * (256 + strlen(special)));
-        if(!tmpctrls){
-            free(pageExtras);
-            return -1;
-        }
-        pageExtras = tmpctrls;
-        strcat(pageExtras, special);
-    }
-    strcat(pageExtras, "0 sair\n");
-    if(userTotal%usersPerPage != 0) maxPages++;
-    if((page+1) * usersPerPage > userTotal){
-        maxUserPrint = userTotal;
-    }else{
-        maxUserPrint = usersPerPage*(page+1);
-    }
-    sprintf(pageCur,"pagina %i de %i", (page+1), maxPages);
-    sprintf(pageInfo,"users %i a %i", (page*usersPerPage)+1, maxUserPrint);
-    if(strlen(pageCur) + strlen(pageInfo) < TXT_CONST){
-        centerString(TXT_CONST/2, pageCur);
-        centerString(TXT_CONST/2, pageInfo);
-        strcat(pagetotal, pageCur);
-        pagetotal[strlen(pageCur)] = '|';
-        strcat(pagetotal, pageInfo);
-    }else{
-        pageCur[strlen(pageCur)+1] = '\n';
-        pageCur[strlen(pageCur)+2] = '\0';
-        strcat(pagetotal, pageCur);
-        pageCur[strlen(pageInfo)+1] = '\n';
-        pageCur[strlen(pageInfo)+2] = '\0';
-        strcat(pagetotal, pageInfo);
-    }
-    strcat(pagetotal, "\n");
-    strcat(pagetotal, "\n");
-    //32 for safety reasons;
-    char *move = malloc(sizeof(char)*strlen((*string)));
-    if(!move)
-        return -1;
-    strcpy(move, (*string));
-    char *tmppage = realloc((*string), sizeof(char) * (strlen((*string)) + strlen(pagetotal) + strlen(pageExtras) + 32));
-    if(!tmppage){
-        free(pageExtras);
-        return -1;
-    }
-    (*string) = tmppage ;
-    strcpy((*string), pagetotal);
-    strcat((*string), move);
-    strcat((*string), pageExtras);
-    free(pageExtras);
-    free(move);
-    return 0;
-}
-
-int showAllUsers(char **string, int usersPerPage, int *page, char *extras){
+int getAllUsers(char **string, int usersPerPage, int *page, char *extras){
     int64_t userTotal = readTotalUsers();
     if(userTotal == 0) return -1;
     int maxPages = userTotal/usersPerPage;
@@ -436,11 +395,6 @@ int showAllUsers(char **string, int usersPerPage, int *page, char *extras){
     }
     if(createUserString(string, users, userTotal, usersPerPage, *page) != 0){
         free(users);
-        return -1;
-    }
-    if(addPageInfo(string, *page, usersPerPage, userTotal, extras) != 0){
-        free(users);
-        free((*string));
         return -1;
     }
     free(users);
@@ -507,11 +461,6 @@ int searchForUserType(char **string, USERS **userList, int *totalUsers, int sear
             free((*userList));
             return -1;
         }
-        if(addPageInfo(string, *page, usersPerPage, *totalUsers, NULL) != 0){
-            free((*string));
-            free(userList);
-            return -1;
-        }
         return 0;
     }
     int64_t userTotal = readTotalUsers();
@@ -537,11 +486,6 @@ int searchForUserType(char **string, USERS **userList, int *totalUsers, int sear
     free(users);
     *totalUsers = hit_size;
     if(createUserString(string, (*userList), *totalUsers, usersPerPage, *page) != 0){
-        free((*string));
-        free(userList);
-        return -1;
-    }
-    if(addPageInfo(string, *page, usersPerPage, *totalUsers, NULL) != 0){
         free((*string));
         free(userList);
         return -1;
