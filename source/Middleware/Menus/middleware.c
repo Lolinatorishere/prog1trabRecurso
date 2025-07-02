@@ -1,3 +1,11 @@
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+#include <stdbool.h>
+#include <unistd.h>
+#include"../../../headers/defs.h"
+#include"../../../headers/stringParse.h"
+#include"../../../headers/user.h"
 
 int addPageInfo(char **string, int page, int itemsPerPage, int itemTotal, char *specialCtrls, char *itemType){
     char *pageExtras = malloc(sizeof(char)*256);

@@ -7,7 +7,8 @@
 #include "../../headers/screenPrint.h"
 #include "../../headers/user.h"
 #include "../../headers/stringParse.h"
-#include "./Menus/middleware.c"
+#include "../../headers/Menus/menuMiddleware.h"
+#include "./Menus/userMenus.c"
 
 int startUpCheck(){
     char buffer[256] = {'\0'};
@@ -45,53 +46,6 @@ int startUpCheck(){
         default:
             return 0;
     }
-}
-
-void NewUser(int admin){
-    char username[256] = {'\0'};
-    char password[256] = {'\0'};
-    menuPrint("NewUser", 1, 1);
-    printf("username:");
-    fgets(username, 256, stdin);
-    if(strlen(username) == 0 || username[0] == '\n'){
-        printf("username cant be null\n");
-        sleep(1);
-        return;
-    }
-    for(int i = strlen(username)-1 ; i < 256 ; i++){
-        username[i] = '\0';
-    }
-    trim(username);
-    printf("password:");
-    fgets(password, 256, stdin);
-    if(strlen(password) == 0 || password[0] == '\n'){
-        printf("password cant be null\n");
-        sleep(1);
-        return;
-    }
-    for(int i = strlen(password)-1 ; i < 256 ; i++){
-        password[i] = '\0';
-    }
-    trim(password);
-    switch(createUser(username,password, 0)){
-    case 1:
-        printf("\nuser %s criado com sucesso\n", username);
-        sleep(1);
-        break;
-    case 0:
-        printf("\n%s ja existe\n", username);
-        sleep(1);
-        break;
-    case -1:
-        printf("\nHouve um erro a carregar os utilizadores\n");
-        sleep(1);
-        break;
-    default:
-        printf("that was an issue");
-        sleep(1);
-        return;
-    }
-    return;
 }
 
 void login(USERS *user){
@@ -144,7 +98,7 @@ void loggedInAdmin(USERS *user){
         input = int64FromString(buffer);
         switch(input){
             case 1:
-                //userAdmin(user);
+                userAdmin((*user));
                 continue;
             case 2:
                 //administartion of cursos

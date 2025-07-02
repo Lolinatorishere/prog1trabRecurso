@@ -16,7 +16,7 @@ int deleteUser(int userId);
 bool userValidate(char *username,char *password, USERS *user);
 
 //returns a string with all users formated
-int getAllUsers(char **string, int usersPerPage, int *page, char *extras);
+int getAllUsers(char **string, int usersPerPage, int *page, char *special);
 
 int searchForUsername(char **string, char *search, int usersPerPage, int page);
 

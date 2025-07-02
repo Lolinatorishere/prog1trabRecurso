@@ -5,6 +5,7 @@
 #include "../../headers/structs.h"
 #include "../../headers/stringParse.h"
 #include "../../headers/defs.h"
+#include "../../headers/Menus/menuMiddleware.h"
 
 USERS setUser(){
     USERS user;
@@ -268,7 +269,7 @@ int createUser(char *username, char *password, int type){
 }
 
 int updateUser(int id, char *username, char *password, int *type, int *alunoId){
-    if(username[0] == '\0' && password[0] == '\0' && type == NULL)return 1;
+    if(username[0] == '\0' && password[0] == '\0' && type == NULL && alunoId == NULL)return 1;
     int error = 0;
     int64_t index = 0;
     int64_t userTotal = readTotalUsers();
@@ -378,7 +379,7 @@ bool userValidate(char *username,char *password, USERS *user){
     return 0;
 }
 
-int getAllUsers(char **string, int usersPerPage, int *page, char *extras){
+int getAllUsers(char **string, int usersPerPage, int *page, char *special){//returns a srting of all users with page addons
     int64_t userTotal = readTotalUsers();
     if(userTotal == 0) return -1;
     int maxPages = userTotal/usersPerPage;
@@ -397,6 +398,7 @@ int getAllUsers(char **string, int usersPerPage, int *page, char *extras){
         free(users);
         return -1;
     }
+    addPageInfo(string, *page, usersPerPage, userTotal, special, "Users");
     free(users);
     return 0;
 }
@@ -448,7 +450,7 @@ int searchForUserId(char **string, int search, int usersPerPage, int page){
     return 0;
 }
 
-int searchForUserType(char **string, USERS **userList, int *totalUsers, int search, int usersPerPage, int *page){
+int searchForUserType(char **string, USERS **userList, int64_t *totalUsers, int search, int usersPerPage, int *page){
     if((*userList) != NULL){
         int maxPages = *totalUsers/usersPerPage;
         if(*totalUsers%usersPerPage != 0){
@@ -461,6 +463,7 @@ int searchForUserType(char **string, USERS **userList, int *totalUsers, int sear
             free((*userList));
             return -1;
         }
+        addPageInfo(string, *page, *totalUsers, *totalUsers, NULL, "Users");
         return 0;
     }
     int64_t userTotal = readTotalUsers();
@@ -490,6 +493,7 @@ int searchForUserType(char **string, USERS **userList, int *totalUsers, int sear
         free(userList);
         return -1;
     }
+    addPageInfo(string, *page, usersPerPage, *totalUsers, NULL, "Users");
     return 0;
 }
 
