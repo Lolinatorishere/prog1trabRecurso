@@ -2,10 +2,10 @@
 #include <stdlib.h>
 #include <string.h>
 #include <stdbool.h>
-#include "../../headers/structs.h"
-#include "../../headers/stringParse.h"
-#include "../../headers/defs.h"
-#include "../../headers/Menus/menuMiddleware.h"
+#include "../../../headers/structs.h"
+#include "../../../headers/stringParse.h"
+#include "../../../headers/defs.h"
+#include "../../../headers/Menus/menuMiddleware.h"
 
 USERS setUser(){
     USERS user;
@@ -68,7 +68,7 @@ int searchWithType(USERS *userList, USERS *hits, int64_t listSize, int64_t *hit_
 
 //This is assuming the ids in the List are sequential which they absolutely should be
 //binary searches the requested id
-USERS *searchId(USERS *userList, int64_t listSize, int id, int64_t *index) {
+USERS *searchUserId(USERS *userList, int64_t listSize, int id, int64_t *index) {
     int64_t low = 0, high = listSize - 1;
     while (low <= high) {
         int64_t mid = low + (high - low) / 2;
@@ -84,7 +84,7 @@ USERS *searchId(USERS *userList, int64_t listSize, int id, int64_t *index) {
     return NULL; 
 }
 
-USERS *searchStudentId(USERS *userList, int64_t listSize, int *studentId, int64_t *index) { // very slow
+USERS *searchUserStudentId(USERS *userList, int64_t listSize, int *studentId, int64_t *index) { // very slow
     for(int64_t i = 0 ; i < listSize ; i++){
         if(userList[i].studentId != *studentId)continue;
         return &userList[i];
@@ -284,7 +284,7 @@ int updateUser(int id, char *username, char *password, int *type, int *studentId
         case 1:
             return 1;
         default:
-            if(!searchId(users, userTotal, id, &index)){
+            if(!searchUserId(users, userTotal, id, &index)){
                 error = 2;
                 break;
             }
@@ -326,7 +326,7 @@ int deleteUser(int id){
         case 1:
             return 1;
         default:
-            if(!searchId(users, userTotal, id, &index)){
+            if(!searchUserId(users, userTotal, id, &index)){
                 free(users);
                 return 0;
             }
@@ -437,7 +437,7 @@ int searchForUserId(char **string, int search, int usersPerPage, int page){
         free(users);
         return 1;
     }
-    USERS *user = searchId(users, userTotal, search, &index);
+    USERS *user = searchUserId(users, userTotal, search, &index);
     if(user == NULL){
         (*string) = malloc(sizeof(char) * 64);
         strcpy((*string), "Utilizador Nao Existe\n");
@@ -507,7 +507,7 @@ int getUser(USERS *user, int id){
         free(users);
         return -1;
     }
-    temp = searchId(users, userTotal, id, &index);
+    temp = searchUserId(users, userTotal, id, &index);
     if(temp == NULL){free(users); return 1;}
     copyUser(user, (*temp));
     return 0;

@@ -2,26 +2,41 @@
 #include <stdlib.h>
 #include <string.h>
 #include <stdbool.h>
-#include "../../headers/structs.h"
-#include "../../headers/stringParse.h"
-#include "../../headers/defs.h"
-#include "../../headers/Menus/menuMiddleware.h"
+#include "../../../headers/structs.h"
+#include "../../../headers/stringParse.h"
+#include "../../../headers/defs.h"
+#include "../../../headers/Menus/menuMiddleware.h"
 
 //This is assuming the ids in the List are sequential which they absolutely should be
 //binary searches the requested id
 
-STUDENTS *searchId(STUDENTS *studentList, int64_t listSize, int id, int64_t *index) {
+STUDENTS *searchStudentId(STUDENTS *studentList, int64_t listSize, int id, int64_t *index) {
     int64_t low = 0, high = listSize - 1;
     while (low <= high) {
         int64_t mid = low + (high - low) / 2;
         if (studentList[mid].studentId == id) {
             *index = mid;
-            return &strudentList[mid];
-        } else if (strudentList[mid].studentId < id) {
+            return &studentList[mid];
+        } else if (studentList[mid].studentId < id) {
             low = mid + 1;
         } else {
             high = mid - 1;
         }
+    }
+    return NULL;
+}
+
+STUDENTS *searchStudentName(STUDENTS *studentList, int64_t listSize, char *studentName, int64_t *index) { // very slow
+    int ulen = strlen(studentName);
+    for(int64_t i = 0 ; i < listSize ; i++){
+        int check = 0;
+        if(ulen != strlen(studentList[i].name))continue;
+        for(int j = 0 ; j < ulen; j++){
+            if(studentList[i].name[j] != studentName[j])break;
+            check++;
+        }
+        if(check != ulen) continue;
+        return &studentList[i];
     }
     return NULL;
 }
@@ -84,7 +99,7 @@ int64_t readTotalStudents(){
     return totalStudents;
 }
 
-int createStudent(char *Student){
+int createStudent(char *student){
     int64_t studentTotal = readTotalStudents();
     STUDENTS  *students = malloc(sizeof(STUDENTS) * (studentTotal + 1));
     int64_t index = 0;
@@ -122,7 +137,7 @@ int updateStudent(int id, char *studentName, int *studentId){
         case 1:
             return 1;
         default:
-            if(!searchId(students, studentTotal, id, &index)){
+            if(!searchStudentId(students, studentTotal, *studentId, &index)){
                 error = 2;
                 break;
             }
@@ -137,9 +152,9 @@ int updateStudent(int id, char *studentName, int *studentId){
     return error;
 }
 
-int deleteStudent(int Student){
+int deleteStudent(int studentId){
     int64_t index = 0;
-    int64_t otal = readTotalStudents();
+    int64_t studentTotal = readTotalStudents();
     STUDENTS *students = malloc(sizeof(STUDENTS) * (studentTotal + 1)),
              *check = NULL,
               student;
@@ -150,7 +165,7 @@ int deleteStudent(int Student){
         case 1:
             return 1;
         default:
-            if(!searchId(students, studentTotal, id, &index)){
+            if(!searchStudentId(students, studentTotal, studentId, &index)){
                 free(students);
                 return 0;
             }
@@ -158,7 +173,7 @@ int deleteStudent(int Student){
             // because i dont know how to do it better kek;
             if(index != studentTotal-1){
                 for(int i = index ; i < studentTotal-1 ; i++){
-                    stdents[i] = students[i+1];
+                    students[i] = students[i+1];
                 }
             }
             updateStudentData(students, studentTotal-1);
@@ -208,7 +223,7 @@ int createStudentsString(char **string, STUDENTS *Students, int StudentTotal, in
 
 //returns a srting of all Students with page addons
 
-int getAllStudents(char **string, int Students, int *page, char *special){
+int getAllStudents(char **string, int studentsPerPage, int *page, char *special){
     int64_t studentsTotal = readTotalStudents();
     if(studentsTotal == 0) return -1;
     int maxPages = studentsTotal/studentsPerPage;
@@ -228,20 +243,20 @@ int getAllStudents(char **string, int Students, int *page, char *special){
         return -1;
     }
     addPageInfo(string, *page, studentsPerPage, studentsTotal, special, "Students");
-    free();
+    free(students);
     return 0;
 }
 
 int searchForStudent(char **string, char *search, int Student, int page){
     int64_t studentTotal = readTotalStudents();
-    STUDENT *students = malloc(sizeof(STUDENTS) * (studentTotal + 1));
+    STUDENTS *students = malloc(sizeof(STUDENTS) * (studentTotal + 1));
     int64_t index = 0;
     if(studentTotal == 0) return -1;
     if(loadStudentData(students) != 0){
         free(students);
         return 1;
     }
-    STUDENTS *student = searchStudentname(students, studentTotal, search, &index);
+    STUDENTS *student = searchStudentName(students, studentTotal, search, &index);
     if(!student){
         //todo work with  instead
         free(students);
@@ -264,12 +279,12 @@ int searchForStudentID(char **string, int search, int Student, int page){
         free(students);
         return 1;
     }
-    STUDENTS *student = searchId(students, studentTotal, search, &index);
+    STUDENTS *student = searchStudentId(students, studentTotal, search, &index);
     if(student == NULL){
         (*string) = malloc(sizeof(char) * 64);
         strcpy((*string), "Aluno Nao Existe\n");
     }else{
-        if(createStudentString(string, student, 1, 1, 0) != 0){
+        if(createStudentsString(string, student, 1, 1, 0) != 0){
             free(students);
             return -1;
         }
@@ -278,17 +293,16 @@ int searchForStudentID(char **string, int search, int Student, int page){
     return 0;
 }
 
-int getStudent(STUDENTS *Student, int id){
+int getStudent(STUDENTS *student, int id){
     int64_t studentTotal = readTotalStudents();
     int64_t index = 0;
-    STUDENTS *temp;
     STUDENTS *students = malloc(sizeof(STUDENTS) * (studentTotal + 1));
     if(loadStudentData(students) != 0){
         free(students);
         return -1;
     }
-    (*student) = searchId(students, studentTotal, id, &index);
-    if((*student) == NULL){
+    student = searchStudentId(students, studentTotal, id, &index);
+    if(student == NULL){
         free(students);
         return 1;
     }

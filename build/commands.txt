@@ -1,1 +1,1 @@
-gcc ./source/main.c ./source/Middleware/screenPrint.c ./source/Middleware/stringParse.c ./source/Middleware/Menus/middleware.c ./source/Middleware/user.c ./source/Middleware/menu.c -g -o ./main.out
+gcc ./source/main.c ./source/Middleware/screenPrint.c ./source/Middleware/stringParse.c ./source/Middleware/Menus/middleware.c ./source/Middleware/Api/user.c ./source/Middleware/Api/student.c ./source/Middleware/Menus/menu.c -g -o ./main.out
