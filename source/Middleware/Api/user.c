@@ -512,3 +512,19 @@ int getUser(USERS *user, int id){
     copyUser(user, (*temp));
     return 0;
 }
+
+int getUsers(USERS *hits, int *ids, int userAmount){
+    int64_t userTotal = readTotalUsers();
+    int64_t index = 0;
+    USERS *users = malloc(sizeof(USERS) * (userTotal + 1));
+    if(loadUserData(users) != 0){
+        free(users);
+        return -1;
+    }
+    for(int i = 0 ; i < userAmount ; i++){
+        (*hits)[i] = searchUserId(users, userTotal, ids[i], &index);
+        if((*hits)[i] == NULL)
+            (*hits)[i] = setUser();
+    }
+    return 0;
+}

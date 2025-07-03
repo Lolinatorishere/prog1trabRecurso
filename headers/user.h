@@ -26,4 +26,6 @@ int searchForUserType(char **string, USERS **userList, int64_t *totalUsers, int 
 
 int getUser(USERS *user, int id);
 
+int getUsers(USERS *hits, int *ids, int userAmount);
+
 #endif
