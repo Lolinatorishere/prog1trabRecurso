@@ -45,7 +45,7 @@ USERS *searchUsername(USERS *userList, int64_t listSize, char *username, int64_t
     for(int64_t i = 0 ; i < listSize ; i++){
         int check = 0;
         if(ulen != strlen(userList[i].userName))continue;
-        for(int j = 0 ; j < ulen; j++){
+        for(int j = 0 ; j < ulen ; j++){
             if(userList[i].userName[j] != username[j])break;
             check++;
         }
@@ -200,7 +200,7 @@ int createUserString(char **string, USERS *users, int userTotal, int usersPerPag
         if(name_len < TXT_CONST-ut_name){
             strcat((*string), user.userName); index += name_len;
         }else{
-            for(int j = 0; j < name_len ; j++){//needs testing
+            for(int j = 0 ; j < name_len ; j++){//needs testing
                 (*string)[j+index] = user.userName[j];
                 if(j%TXT_CONST-ut_name == 0){
                     strcat((*string), " |      "); index += ut_name;
@@ -216,7 +216,7 @@ int createUserString(char **string, USERS *users, int userTotal, int usersPerPag
             strcat((*string), user.password); index += pwd_len;
         }else{
             strcat((*string), " | Pwd:"); index += ut_pwd;
-            for(int j = 0; j < pwd_len; j++){
+            for(int j = 0 ; j < pwd_len ; j++){
                 (*string)[j+index] = user.password[j];
                 if(j%TXT_CONST-ut_name == 0){
                     if(pwd_len - j < TXT_CONST - ut_pwd){

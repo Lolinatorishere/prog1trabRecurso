@@ -206,7 +206,7 @@ int createStudentsString(char **string, STUDENTS *Students, int StudentTotal, in
             strcat((*string), student.name); index += name_len;
         }else{
             strcat((*string), " | Aluno:"); index += ut_name;
-            for(int j = 0; j < name_len ; j++){//needs testing doesnt work needs to test/fix
+            for(int j = 0 ; j < name_len ; j++){//needs testing doesnt work needs to test/fix
                 (*string)[j+index] = student.name[j];
                 if(j%TXT_CONST-ut_name == 0){
                     strcat((*string), " |       "); index += ut_name;

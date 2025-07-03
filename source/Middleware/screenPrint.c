@@ -15,7 +15,7 @@ void dynamic_linespace(int text_constant, int txt_indent, int txt_margin, int li
 void dynamic_begin_text(int text_constant, int txt_indent, int txt_margin){
     char line[1] = "-";
     printf("/");
-    for(int i = 0; i < text_constant + txt_indent + txt_margin; i++){
+    for(int i = 0 ; i < text_constant + txt_indent + txt_margin ; i++){
         printf("%c",line[0]);
     }
     printf("\\\n");
@@ -24,7 +24,7 @@ void dynamic_begin_text(int text_constant, int txt_indent, int txt_margin){
 void dynamic_end_text(int text_constant, int txt_indent, int txt_margin){
     char line[1] = "-";
     printf("\\");
-    for(int i = 0; i < text_constant + txt_indent + txt_margin; i++){
+    for(int i = 0 ; i < text_constant + txt_indent + txt_margin ; i++){
         printf("%c",line[0]);
     }
     printf("/\n");
@@ -39,7 +39,7 @@ void dynamic_line_print(char *string, int text_const, int txt_indent, int txt_ma
     char space = ' ';
     int i = 0, j = 0;
     printf("|%*c", txt_indent, space);
-    for(i = 0 ; i <= arraysize; i++){
+    for(i = 0 ; i <= arraysize ; i++){
         if(string[i] == '\n' && i+1 != arraysize){
             printf("%*c|\n", text_const-j + txt_margin, space);
             j = 0;

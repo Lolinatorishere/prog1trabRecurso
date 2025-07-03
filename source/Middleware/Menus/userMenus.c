@@ -102,7 +102,7 @@ void userDeleteMenu(USERS adminUser){
             advancedPrint(toPrint, 1, 1);
             printf("escreve: \"C E R T E Z A\", para confirmar");
             fgets(buffer, 256, stdin);
-            for(int i = 0; i < strlen(buffer); i++){
+            for(int i = 0 ; i < strlen(buffer); i++){
                 if(buffer[i] != confirm[i]) break;
                 str_cmp++;
             }

@@ -86,12 +86,12 @@ int centerString(int size, char *text){
     int textsize = strlen(text);
     int unbal = (size-textsize)%2;
     int margins = (size-textsize)/2;
-    for(i = 0; i < margins; i++)
+    for(i = 0 ; i < margins ; i++)
         buffer[i] = ' ';
     index += i;
     strcat(buffer, text);
     index += textsize;
-    for(i = 0; i < margins; i++)
+    for(i = 0 ; i < margins ; i++)
         buffer[i+index] = ' ';
     index += i;
     buffer[index] = '\0';
