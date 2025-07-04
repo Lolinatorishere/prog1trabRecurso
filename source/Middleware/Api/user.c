@@ -522,9 +522,10 @@ int getUsers(USERS *hits, int *ids, int userAmount){
         return -1;
     }
     for(int i = 0 ; i < userAmount ; i++){
-        (*hits)[i] = searchUserId(users, userTotal, ids[i], &index);
-        if((*hits)[i] == NULL)
-            (*hits)[i] = setUser();
+        USERS *user = searchUserId(users, userTotal, ids[i], &index);
+        copyUser(&hits[i], *user);
+        if(&hits[i] == NULL)
+            hits[i] = setUser();
     }
     return 0;
 }

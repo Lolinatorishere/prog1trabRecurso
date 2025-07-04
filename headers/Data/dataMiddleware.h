@@ -6,6 +6,6 @@ int associateStudentUser(int userId, int alunoId);
 
 int DissasociateStudentUser(int userId, int alunoId);
 
-int loadEventStudentQueue(EVENTS *eventList);
+int loadEventStudentData(EVENTS *eventList);
 
 #endif
