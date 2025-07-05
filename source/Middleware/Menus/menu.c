@@ -2,6 +2,8 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include<sys/types.h>
+#include<sys/stat.h>
 #include <unistd.h>
 #include <stdbool.h>
 //my files
@@ -15,7 +17,9 @@
 //may fk with compiler errors
 #include "./userMenus.c"
 
-int startUpCheck(){
+struct stat st = {0};
+
+int startUpCheck(int recursion){
     char buffer[256] = {'\0'};
     bool pwderr = false, blink = false;
     switch(firstTime()){
@@ -41,18 +45,23 @@ int startUpCheck(){
                 if(createUser("admin", buffer, 100) != 1) continue;
                 advancedPrint("user Admin foi criado com sucesso", 1, 1);
                 sleep(1);
-                break;
+                return 0;
             }
             break;
         case -1:
+            if(recursion == 1)return -1;
+            if(stat(DATADIR, &st) == -1)
+                mkdir(DATADIR, 0755);
+            if(startUpCheck(1) == 0)
+                return 0;
             printf("An Error Occured, couldnt create USERDATA file\n");
             sleep(1);
             return -1;
         default:
             return 0;
     }
-}
 
+}
 void login(USERS *user){
     int attempts = 0;
     char buffer[256] = {'\0'};

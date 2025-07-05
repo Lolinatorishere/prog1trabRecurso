@@ -80,15 +80,38 @@ void returnText(char *where, int HowLong){
 
 int firstTime(){
     int first = 0;
-    FILE *in = fopen(USERDATA, "r");
+    FILE *in = fopen(STUDENTDATA, "r");
+    FILE *create = NULL;
+    if(!in){
+        create = fopen(STUDENTDATA, "w");
+        if(!create)
+            return -1;
+        fclose(create);
+    }
+    in = fopen(EVENTDATA, "r");
+    if(!in){
+        create = fopen(EVENTDATA, "w");
+        if(!create)
+            return -1;
+        fclose(create);
+    }
+    in = fopen(EVENTINDEX, "r");
+    if(!in){
+        create = fopen(EVENTINDEX, "w");
+        if(!create)
+            return -1;
+        fclose(create);
+    }
+    in = fopen(USERDATA, "r");
     if(!in){
         first = 1;
         FILE *create = fopen(USERDATA, "w");
-        if(!create) return -1;
+        if(!create)
+            return -1;
         fclose(create);
-    }else{
-        if(readTotalUsers() == 0) first = 1;
-        fclose(in);
     }
+    if(readTotalUsers() == 0) first = 1;
+    if(in)
+        fclose(in);
     return first;
 }

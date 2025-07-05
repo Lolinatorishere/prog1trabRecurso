@@ -26,6 +26,10 @@
     #ifndef MARGIN
     #define MARGIN 4
     #endif
+    //file definitions
+    #ifndef DATADIR
+        #define DATADIR "./Data"
+    #endif
     #ifndef USERDATA
         #define USERDATA "./Data/userData.dat"
     #endif
