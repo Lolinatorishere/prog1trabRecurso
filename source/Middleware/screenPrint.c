@@ -74,9 +74,9 @@ int readMenuFile(char *menuSection, char **menuText){
     strcat(dir, menuSection);
     strcat(dir,".menu");
     FILE *fp = fopen(dir, "r");
+    free(dir);
     if(fp == NULL)
         return -1;
-    free(dir);
     fseek(fp, 0, SEEK_END);
     int64_t filesize = ftell(fp);
     if(filesize == 0){
@@ -119,10 +119,11 @@ int menuPrint(char *menuSection, int padding_top, int padding_bottom){
 int advancedPrint(char *input, int padding_top, int padding_bottom){
     if(input == NULL)
         return -1;
-    char *resize = malloc(sizeof(char) * strlen(input)+1);
-    strcpy(resize, input);
-    strcat(resize, " ");
-    printToScreen(resize, padding_top, padding_bottom);
-    free(resize);
+    int inlen = strlen(input);
+    char *resize = realloc(input, sizeof(char) * inlen + 2);
+    input = resize;
+    strncpy(input, input, sizeof(input));
+    strcat(input, " ");
+    printToScreen(input, padding_top, padding_bottom);
     return 0;
 }
