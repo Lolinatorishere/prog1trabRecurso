@@ -10,7 +10,8 @@ int createEventsString(char **string, EVENTS *Events, int EventTotal, int events
     int ut_id = strlen(" / Id:");
     int ut_name = strlen(" \\ Aluno:");
     strcpy((*string), "\0");
-    if(TXT_CONST-ut_name <= ut_name) return -1;
+    if(TXT_CONST-ut_name <= ut_name)
+        return -1;
     for(int i = (page * eventsPerPage) ; i < eventsPerPage + (page * eventsPerPage) ; i++){
         if(i >= EventTotal) break;
         EVENTS event = Events[i];
@@ -40,7 +41,8 @@ int createEventsString(char **string, EVENTS *Events, int EventTotal, int events
 
 int getAllEvents(char **string, int eventsPerPage, int *page, char *special){
     int64_t eventsTotal = readTotalEvents();
-    if(eventsTotal == 0) return -1;
+    if(eventsTotal == 0)
+        return -1;
     int maxPages = eventsTotal/eventsPerPage;
     if(eventsTotal%eventsPerPage != 0){
         maxPages++;
@@ -48,7 +50,8 @@ int getAllEvents(char **string, int eventsPerPage, int *page, char *special){
     if (*page >= maxPages) *page = maxPages-1;
     if(*page<0)*page = 0;
     EVENTS *events = malloc(sizeof(EVENTS) * (eventsTotal + 1));
-    if(!events)return -1;
+    if(!events)
+        return -1;
     if(loadEventData(events) != 0){
         free(events);
         return -1;
@@ -66,7 +69,8 @@ int searchForEvent(char **string, char *search, int Event, int page){
     int64_t eventTotal = readTotalEvents();
     EVENTS *events = malloc(sizeof(EVENTS) * (eventTotal + 1));
     int64_t index = 0;
-    if(eventTotal == 0) return -1;
+    if(eventTotal == 0)
+        return -1;
     if(loadEventData(events) != 0){
         free(events);
         return 1;
@@ -89,7 +93,8 @@ int searchForEventID(char **string, int search, int Event, int page){
     int64_t eventTotal = readTotalEvents();
     EVENTS *events = malloc(sizeof(EVENTS) * (eventTotal + 1));
     int64_t index = 0;
-    if(eventTotal == 0) return -1;
+    if(eventTotal == 0)
+        return -1;
     if(loadEventData(events) != 0){
         free(events);
         return 1;

@@ -10,9 +10,8 @@ void NewUser(int admin){
         sleep(1);
         return;
     }
-    for(int i = strlen(username)-1 ; i < 256 ; i++){
+    for(int i = strlen(username)-1 ; i < 256 ; i++)
         username[i] = '\0';
-    }
     trim(username);
     printf("password:");
     fgets(password, 256, stdin);
@@ -21,28 +20,27 @@ void NewUser(int admin){
         sleep(1);
         return;
     }
-    for(int i = strlen(password)-1 ; i < 256 ; i++){
+    for(int i = strlen(password)-1 ; i < 256 ; i++)
         password[i] = '\0';
-    }
     trim(password);
     switch(createUser(username,password, 0)){
-    case 1:
-        printf("\nuser %s criado com sucesso\n", username);
-        sleep(1);
-        break;
-    case 0:
-        printf("\n%s ja existe\n", username);
-        sleep(1);
-        break;
-    case -1:
-        printf("\nHouve um erro a carregar os utilizadores\n");
-        sleep(1);
-        break;
-    default:
-        printf("that was an issue");
-        sleep(1);
-        return;
-    }
+        case 1:
+            printf("\nuser %s criado com sucesso\n", username);
+            sleep(1);
+            break;
+        case 0:
+            printf("\n%s ja existe\n", username);
+            sleep(1);
+            break;
+        case -1:
+            printf("\nHouve um erro a carregar os utilizadores\n");
+            sleep(1);
+            break;
+        default:
+            printf("that was an issue");
+            sleep(1);
+            return;
+        }
     return;
 }
 
@@ -55,14 +53,12 @@ void userIndexMenu(){
         advancedPrint(menuText, 1, 1);
         //handle menuInput
         fgets(buffer, 256, stdin);
-        if(buffer[0] == '+'){
+        if(buffer[0] == '+')
             page++;
-        }
-        if(buffer[0] == '-'){
+        if(buffer[0] == '-')
             page--;
-        }
     }
-    if(menuText != NULL) free(menuText);
+    free(menuText);
     return;
 }
 
@@ -93,7 +89,7 @@ void userDeleteMenu(USERS adminUser){
                 continue;
             }
             if(getUser(&user, selectedID) != 0){
-                if(menuText != NULL) free(menuText);
+                free(menuText);
                 menuPrint("userNonExists", 1, 1);
                 sleep(1);
                 return;
@@ -108,13 +104,14 @@ void userDeleteMenu(USERS adminUser){
             }
             if(str_cmp != strlen(confirm))continue;
             if(deleteUser(selectedID) != 0){
+                free(menuText);
                 menuPrint("Error", 4, 4);
                 sleep(1);
                 return;
             }
         }
     }
-    if(menuText != NULL) free(menuText);
+    free(menuText);
     return;
 }
 
@@ -133,14 +130,14 @@ void usernameSearch(){
             advancedPrint(menuText, 1, 1);
         break;
         case -1:
-            if(menuText != NULL) free(menuText);
+            free(menuText);
             return;
         default:
             menuPrint("userNonExists", 1, 1);
             break;
         }
         advancedPrint(menuText, 1, 1);
-        if(menuText != NULL) free(menuText);
+        free(menuText);
         fgets(search,256, stdin);
         input = int64FromString(search);
         if(input == 0) return;
@@ -159,7 +156,7 @@ void idSearch(){
         input = int64FromString(buffer);
         searchForUserId(&menuText, input, 5, page);
         advancedPrint(menuText, 1, 1);
-        if(menuText != NULL) free(menuText);
+        free(menuText);
         printf("para sair carrega 0:");
         fgets(buffer, 256, stdin);
         input = int64FromString(buffer);
@@ -182,7 +179,7 @@ void typeSearch(){
         searchForUserType(&menuText, &users, &totalUsers, input, 5, &page);
         if(totalUsers == 0){
             menuPrint("userNonExists", 1, 1);
-            if(menuText != NULL) free(menuText);
+            free(menuText);
             free(users);
             return;
         }
@@ -227,7 +224,7 @@ void userSearchMenu(){
                 typeSearch();
                 continue;
             case 0:
-                if(menuText!= NULL) free(menuText);
+                free(menuText);
                 return;
             default:
                 continue;
@@ -247,7 +244,7 @@ void editingUser(char *buffer, char *menuText, USERS adminUser, int page){
         selectedID = 0;
     selectedID = int64FromString(buffer);
     if(getUser(&user, selectedID) < 0){
-        if(menuText != NULL) free(menuText);
+        free(menuText);
         return;
     }
     if(user.userId == -1){
@@ -269,7 +266,7 @@ void editingUser(char *buffer, char *menuText, USERS adminUser, int page){
         fgets(buffer, 256, stdin);
         input = int64FromString(buffer);
         if(buffer[0] == '\n' || buffer[0] == '\0'){
-            if(menuText != NULL) free(menuText);
+            free(menuText);
             return;
         }
         if(input == 0){
@@ -282,17 +279,20 @@ void editingUser(char *buffer, char *menuText, USERS adminUser, int page){
             printf("\nUsername:");
             fgets(username, 256, stdin);
             trim(username);
-            if(strlen(username) < 1) continue;
+            if(strlen(username) < 1)
+                continue;
         }
         if(input == 2){
             printf("\npassword:");
             fgets(password, 256, stdin);
             trim(password);
-            if(strlen(password) < 1) continue;
+            if(strlen(password) < 1)
+                continue;
         }
         if(input == 3){
             if(adminUser.userId == selectedID){
                 printf("Administradores nao podem alterar o seu tipo");
+                sleep(1);
                 continue;
             }
             printf("\ntipo:");
@@ -342,17 +342,36 @@ void userAlterMenu(USERS adminUser){
         getAllUsers(&menuText, 5, &page, extras);
         advancedPrint(menuText, 1, 1);
         fgets(buffer, 256, stdin);
-        if(buffer[0] == '+'){
+        if(buffer[0] == '+')
             page++;
-        }
-        if(buffer[0] == '-'){
+        if(buffer[0] == '-')
             page--;
-        }
-        if(buffer[0] == 's' && buffer[1] == 'e' && buffer[2] == 'l'){
+        if(buffer[0] == 's' && buffer[1] == 'e' && buffer[2] == 'l')
             editingUser(buffer, menuText, adminUser, page);
-        }
     }
-    if(menuText != NULL) free(menuText);
+    free(menuText);
+    return;
+}
+
+void userStudentMenu(USERS adminUser){
+    char extras[256] = "sel \"ID\" para editar utilizador\n";
+    int page = 0;
+    int input = 0;
+    char buffer[256] = {'\0'};
+    char *menuText = NULL;
+    while(buffer[0] != '0'){
+        input = 0;
+        getAllUsers(&menuText, 5, &page, extras);
+        advancedPrint(menuText, 1, 1);
+        fgets(buffer, 256, stdin);
+        if(buffer[0] == '+')
+            page++;
+        if(buffer[0] == '-')
+            page--;
+        if(buffer[0] == 's' && buffer[1] == 'e' && buffer[2] == 'l')
+            editingUser(buffer, menuText, adminUser, page);
+    }
+        free(menuText);
     return;
 }
 
@@ -367,6 +386,7 @@ void userAdmin(USERS user){
         //2 - Ver Utilizadores registados
         //3 - Alterar utilizador registado
         //4 - Apagar Utilizador do Sistema
+        //5 - Procurar Utilizador do Sistema
         switch(input){
             case 1:
                 NewUser(100);
@@ -382,6 +402,9 @@ void userAdmin(USERS user){
                 continue;
             case 5:
                 userSearchMenu();
+                continue;
+            case 6:
+                userStudentMenu(user);
                 continue;
             case 0:
                 return;

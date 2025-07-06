@@ -59,10 +59,12 @@ int updateEventData(EVENTS eventList[], int64_t listSize){
     FILE *fp = fopen(EVENTDATA, "wb");
     if(!fp)
         return -1;
-    if(fwrite(&listSize, sizeof(int64_t), 1, fp) != 1 ) return -1;
+    if(fwrite(&listSize, sizeof(int64_t), 1, fp) != 1 )
+        return -1;
     for(int i = 0 ; i < listSize ; i++){
         eventList[i].participants = NULL;
-        if(fwrite(&eventList[i], sizeof(EVENTS), 1, fp) != 1) return -1;
+        if(fwrite(&eventList[i], sizeof(EVENTS), 1, fp) != 1)
+            return -1;
     }
     fclose(fp);
     return 1;
@@ -231,7 +233,8 @@ int loadStudentsFromEventIndex(EVENTS *event){
 
 int loadEventData(EVENTS *eventList) {
     FILE *fp = fopen(EVENTDATA, "rb");
-    if(!fp) return -1;
+    if(!fp)
+        return -1;
     fseek(fp, 0, SEEK_END);
     if(ftell(fp) == 0){
         fclose(fp);
@@ -325,7 +328,8 @@ int createEvent(char *eventName, time_t date, char *location, int limit){
 //EVENTS;
 
 int updateEvent(int eventId, char *eventName, time_t *date, char *location, int *limit, int *status){
-    if(eventName == NULL)return 1;
+    if(eventName == NULL)
+        return 1;
     int error = 0;
     int64_t index = 0,
             eventTotal = readTotalEvents();
@@ -360,7 +364,8 @@ int deleteEvent(int eventId){
     EVENTS *events = malloc(sizeof(EVENTS) * (eventTotal + 1)),
            *check = NULL,
             event;
-    if(!events) return -1;
+    if(!events)
+        return -1;
     switch(loadEventData(events)){
         case -1:
             return -1;
@@ -404,7 +409,8 @@ int getEvent(EVENTS *event, int id){
 
 //int getAllEvents(char **string, int eventsPerPage, int *page, char *special){
 //    int64_t eventsTotal = readTotalEvents();
-//    if(eventsTotal == 0) return -1;
+//    if(eventsTotal == 0)
+//    return -1;
 //    int maxPages = eventsTotal/eventsPerPage;
 //    if(eventsTotal%eventsPerPage != 0){
 //        maxPages++;
@@ -412,7 +418,8 @@ int getEvent(EVENTS *event, int id){
 //    if (*page >= maxPages) *page = maxPages-1;
 //    if(*page<0)*page = 0;
 //    EVENTS *events = malloc(sizeof(EVENTS) * (eventsTotal + 1));
-//    if(!events)return -1;
+//    if(!events)
+//    return -1;
 //    if(loadEventData(events) != 0){
 //        free(events);
 //        return -1;
@@ -430,7 +437,8 @@ int getEvent(EVENTS *event, int id){
 //    int64_t eventTotal = readTotalEvents();
 //    EVENTS *events = malloc(sizeof(EVENTS) * (eventTotal + 1));
 //    int64_t index = 0;
-//    if(eventTotal == 0) return -1;
+//    if(eventTotal == 0)
+//    return -1;
 //    if(loadEventData(events) != 0){
 //        free(events);
 //        return 1;
@@ -453,7 +461,8 @@ int getEvent(EVENTS *event, int id){
 //    int64_t eventTotal = readTotalEvents();
 //    EVENTS *events = malloc(sizeof(EVENTS) * (eventTotal + 1));
 //    int64_t index = 0;
-//    if(eventTotal == 0) return -1;
+//    if(eventTotal == 0)
+//    return -1;
 //    if(loadEventData(events) != 0){
 //        free(events);
 //        return 1;

@@ -13,6 +13,7 @@
 #include "../../../headers/Menus/menuMiddleware.h"
 #include "../../../headers/user.h"
 #include "../../../headers/student.h"
+
 //copy paste menus code legibility.
 //may fk with compiler errors
 #include "./userMenus.c"
@@ -49,7 +50,8 @@ int startUpCheck(int recursion){
             }
             break;
         case -1:
-            if(recursion == 1)return -1;
+            if(recursion == 1)
+                return -1;
             if(stat(DATADIR, &st) == -1)
                 mkdir(DATADIR, 0755);
             if(startUpCheck(1) == 0)

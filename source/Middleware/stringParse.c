@@ -8,8 +8,10 @@ int isWhitespace(char c) {
 }
 
 int stringReplace(char *input, char *filter, char *replace){
-    if(input == NULL) return 1;
-    if(filter[0] == '\0') return 1;
+    if(input == NULL)
+        return 1;
+    if(filter[0] == '\0') 
+        return 1;
     int i = 0;
     int replaced = 0;
     char *buffer = (char*)malloc(sizeof(char)*strlen(input));
@@ -52,11 +54,14 @@ void trim(char *str) {
 
 //int intNumberInput(char *input, int *output);
 int64_t int64FromString(char *input){
-    if(input == NULL) return -1;
+    if(input == NULL)
+        return -1;
     int inlen = strlen(input);
     int j = 0;
     int64_t output = 0;
-    if(strlen(input) == 0)return -1;
+    if(strlen(input) == 0)
+        
+        return -1;
     char *seperateNums = malloc(sizeof(char) * inlen);
     for(int i = 0 ; i < inlen ; i++){
         isasciinum(input[i]){
@@ -72,15 +77,20 @@ int64_t int64FromString(char *input){
 //int floatNumberInput(char *input, float *output);
 
 double doubleFromString(char *input){
-    if(input == NULL) return -1;
-    if(strlen(input) == 0)return -1;
+    if(input == NULL)
+        return -1;
+    if(strlen(input) == 0)
+        return -1;
     return atof(input);
 }
 
 int centerString(int size, char *text){
-    if(size < strlen(text)) return -1;
-    if(!text) return -1;
-    if(strlen(text) > TXT_CONST) return -1;
+    if(size < strlen(text))
+        return -1;
+    if(!text)
+        return -1;
+    if(strlen(text) > TXT_CONST)
+        return -1;
     char *buffer = malloc(sizeof(char)*TXT_CONST);
     int index = 0, i = 0;
     int textsize = strlen(text);

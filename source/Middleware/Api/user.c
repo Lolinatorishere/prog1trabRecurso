@@ -96,9 +96,11 @@ int updateUserData(USERS userList[], int64_t listSize){
     FILE *fp = fopen(USERDATA, "wb");
     if(!fp)
         return -1;
-    if(fwrite(&listSize, sizeof(int64_t), 1, fp) != 1 ) return -1;
+    if(fwrite(&listSize, sizeof(int64_t), 1, fp) != 1 ) 
+        return -1;
     for(int i = 0 ; i < listSize ; i++){
-        if(fwrite(&userList[i], sizeof(USERS), 1, fp) != 1) return -1;
+        if(fwrite(&userList[i], sizeof(USERS), 1, fp) != 1) 
+            return -1;
     }
     fclose(fp);
     return 1;
@@ -130,7 +132,8 @@ int64_t readTotalUsers(){
 
 int loadUserData(USERS *userList) {
     FILE *fp = fopen(USERDATA, "rb");
-    if(!fp) return -1;
+    if(!fp)
+        return -1;
     fseek(fp, 0, SEEK_END);
     if(ftell(fp) == 0){
         fclose(fp);
@@ -182,7 +185,8 @@ int createUserString(char **string, USERS *users, int userTotal, int usersPerPag
     int ut_name = strlen(" | Nome:");
     int ut_pwd = strlen(" \\ Pwd:");
     strcpy((*string), "\0");
-    if(TXT_CONST-ut_name <= ut_name)return -1;
+    if(TXT_CONST-ut_name <= ut_name)
+        return -1;
     for(int i = (page * usersPerPage); i < usersPerPage + (page * usersPerPage); i++){
         if(i >= userTotal) break;
         USERS user = users[i];
@@ -270,7 +274,8 @@ int createUser(char *username, char *password, int type){
 }
 
 int updateUser(int id, char *username, char *password, int *type, int *studentId){
-    if(username[0] == '\0' && password[0] == '\0' && type == NULL && studentId == NULL)return 1;
+    if(username[0] == '\0' && password[0] == '\0' && type == NULL && studentId == NULL)
+        return 1;
     int error = 0;
     int64_t index = 0;
     int64_t userTotal = readTotalUsers();
@@ -319,7 +324,8 @@ int deleteUser(int id){
     USERS user;
     int64_t userTotal = readTotalUsers();
     USERS *users = malloc(sizeof(USERS) * (userTotal + 1));
-    if(!users) return -1;
+    if(!users)
+        return -1;
     switch(loadUserData(users)){
         case -1:
             return -1;
@@ -348,7 +354,8 @@ bool userValidate(char *username,char *password, USERS *user){
     int checks = 0;
     userTotal = readTotalUsers();
     USERS *users = malloc(sizeof(USERS) * (userTotal + 1));
-    if(!users) return -1;
+    if(!users)
+        return -1;
     *user = setUser();
     if(loadUserData(users) != 0){
         free(users);
@@ -376,13 +383,15 @@ bool userValidate(char *username,char *password, USERS *user){
         break;
     }
     free(users);
-    if(user->type < 0) return -1;
+    if(user->type < 0)
+        return -1;
     return 0;
 }
 
 int getAllUsers(char **string, int usersPerPage, int *page, char *special){//returns a srting of all users with page addons
     int64_t userTotal = readTotalUsers();
-    if(userTotal == 0) return -1;
+    if(userTotal == 0)
+        return -1;
     int maxPages = userTotal/usersPerPage;
     if(userTotal%usersPerPage != 0){
         maxPages++;
@@ -390,7 +399,8 @@ int getAllUsers(char **string, int usersPerPage, int *page, char *special){//ret
     if (*page >= maxPages) *page = maxPages-1;
     if(*page<0)*page = 0;
     USERS *users = malloc(sizeof(USERS) * (userTotal + 1));
-    if(!users)return -1;
+    if(!users)
+        return -1;
     if(loadUserData(users) != 0){
         free(users);
         return -1;
@@ -409,7 +419,8 @@ int searchForUsername(char **string, char *search, int usersPerPage, int page){
     int64_t userTotal = readTotalUsers();
     USERS *users = malloc(sizeof(USERS) * (userTotal + 1));
     int64_t index = 0;
-    if(userTotal == 0) return -1;
+    if(userTotal == 0)
+        return -1;
     if(loadUserData(users) != 0){
         free(users);
         return 1;
@@ -432,7 +443,8 @@ int searchForUserId(char **string, int search, int usersPerPage, int page){
     int64_t userTotal = readTotalUsers();
     USERS *users = malloc(sizeof(USERS) * (userTotal + 1));
     int64_t index = 0;
-    if(userTotal == 0) return -1;
+    if(userTotal == 0)
+        return -1;
     if(loadUserData(users) != 0){
         free(users);
         return 1;
@@ -469,7 +481,8 @@ int searchForUserType(char **string, USERS **userList, int64_t *totalUsers, int 
     }
     int64_t userTotal = readTotalUsers();
     int64_t hit_size = 0;
-    if(userTotal == 0) return -1;
+    if(userTotal == 0)
+        return -1;
     USERS *users = malloc(sizeof(USERS) * (userTotal + 1));
     if(!users){
         free((*string));
@@ -508,7 +521,10 @@ int getUser(USERS *user, int id){
         return -1;
     }
     temp = searchUserId(users, userTotal, id, &index);
-    if(temp == NULL){free(users); return 1;}
+    if(temp == NULL){
+        free(users);
+        return 1;
+    }
     copyUser(user, (*temp));
     return 0;
 }

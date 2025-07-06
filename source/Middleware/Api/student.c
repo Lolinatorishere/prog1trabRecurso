@@ -45,9 +45,11 @@ int updateStudentData(STUDENTS studentList[], int64_t listSize){
     FILE *fp = fopen(STUDENTDATA, "wb");
     if(!fp)
         return -1;
-    if(fwrite(&listSize, sizeof(int64_t), 1, fp) != 1 ) return -1;
+    if(fwrite(&listSize, sizeof(int64_t), 1, fp) != 1 )
+        return -1;
     for(int i = 0 ; i < listSize ; i++){
-        if(fwrite(&studentList[i], sizeof(STUDENTS), 1, fp) != 1) return -1;
+        if(fwrite(&studentList[i], sizeof(STUDENTS), 1, fp) != 1)
+            return -1;
     }
     fclose(fp);
     return 1;
@@ -55,7 +57,8 @@ int updateStudentData(STUDENTS studentList[], int64_t listSize){
 
 int loadStudentData(STUDENTS *studentList) {
     FILE *fp = fopen(STUDENTDATA, "rb");
-    if(!fp) return -1;
+    if(!fp)
+        return -1;
     fseek(fp, 0, SEEK_END);
     if(ftell(fp) == 0){
         fclose(fp);
@@ -123,7 +126,8 @@ int createStudent(char *student){
 }
 
 int updateStudent(int id, char *studentName, int *studentId){
-    if(studentName == NULL)return 1;
+    if(studentName == NULL)
+        return 1;
     int error = 0;
     int64_t index = 0,
             studentTotal = readTotalStudents();
@@ -158,7 +162,8 @@ int deleteStudent(int studentId){
     STUDENTS *students = malloc(sizeof(STUDENTS) * (studentTotal + 1)),
              *check = NULL,
               student;
-    if(!students) return -1;
+    if(!students)
+        return -1;
     switch(loadStudentData(students)){
         case -1:
             return -1;
@@ -193,7 +198,8 @@ int createStudentsString(char **string, STUDENTS *Students, int StudentTotal, in
     int ut_id = strlen(" / Id:");
     int ut_name = strlen(" \\ Aluno:");
     strcpy((*string), "\0");
-    if(TXT_CONST-ut_name <= ut_name) return -1;
+    if(TXT_CONST-ut_name <= ut_name)
+        return -1;
     for(int i = (page * studentsPerPage); i < studentsPerPage + (page * studentsPerPage); i++){
         if(i >= StudentTotal) break;
         STUDENTS student = Students[i];
@@ -225,7 +231,8 @@ int createStudentsString(char **string, STUDENTS *Students, int StudentTotal, in
 
 int getAllStudents(char **string, int studentsPerPage, int *page, char *special){
     int64_t studentsTotal = readTotalStudents();
-    if(studentsTotal == 0) return -1;
+    if(studentsTotal == 0)
+        return -1;
     int maxPages = studentsTotal/studentsPerPage;
     if(studentsTotal%studentsPerPage != 0){
         maxPages++;
@@ -233,7 +240,8 @@ int getAllStudents(char **string, int studentsPerPage, int *page, char *special)
     if (*page >= maxPages) *page = maxPages-1;
     if(*page<0)*page = 0;
     STUDENTS *students = malloc(sizeof(STUDENTS) * (studentsTotal + 1));
-    if(!students)return -1;
+    if(!students)
+        return -1;
     if(loadStudentData(students) != 0){
         free(students);
         return -1;
@@ -251,7 +259,8 @@ int searchForStudent(char **string, char *search, int Student, int page){
     int64_t studentTotal = readTotalStudents();
     STUDENTS *students = malloc(sizeof(STUDENTS) * (studentTotal + 1));
     int64_t index = 0;
-    if(studentTotal == 0) return -1;
+    if(studentTotal == 0)
+        return -1;
     if(loadStudentData(students) != 0){
         free(students);
         return 1;
@@ -274,7 +283,8 @@ int searchForStudentID(char **string, int search, int Student, int page){
     int64_t studentTotal = readTotalStudents();
     STUDENTS *students = malloc(sizeof(STUDENTS) * (studentTotal + 1));
     int64_t index = 0;
-    if(studentTotal == 0) return -1;
+    if(studentTotal == 0)
+        return -1;
     if(loadStudentData(students) != 0){
         free(students);
         return 1;
