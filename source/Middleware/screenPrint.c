@@ -66,8 +66,30 @@ void dynamic_line_print(char *string, int text_const, int txt_indent, int txt_ma
     }
 }
 
+int readMenuFileOps(FILE *fp, int64_t *filesize, char **menuText){
+    if(fp == NULL)
+        return -1;
+    fseek(fp, 0, SEEK_END);
+    *filesize = ftell(fp);
+    if(*filesize == 0)
+        return -1;
+    fseek(fp, 0, SEEK_SET);
+    *menuText = malloc(sizeof(char) * *filesize + 1);
+    if(!menuText)
+        return -1;
+    for(int i = 0 ; i < *filesize ; i++){
+        fseek(fp, i, SEEK_SET);
+        (*menuText)[i] = fgetc(fp);
+    }
+    (*menuText)[*filesize+1] = '\0';
+    return 0;
+}
+
 int readMenuFile(char *menuSection, char **menuText){
-    char *dir = malloc(sizeof(char) * strlen(menuSection) + strlen("./menus/") + 128); //128 to stop segfaults;
+    //128 to stop segfaults;
+    int error = 0;
+    char *dir = malloc(sizeof(char) * strlen(menuSection) + strlen("./menus/") + 128); 
+    int64_t filesize = 0;
     if(!dir)
         return -1;
     strcpy(dir, "./menus/");
@@ -75,27 +97,9 @@ int readMenuFile(char *menuSection, char **menuText){
     strcat(dir,".menu");
     FILE *fp = fopen(dir, "r");
     free(dir);
-    if(fp == NULL)
-        return -1;
-    fseek(fp, 0, SEEK_END);
-    int64_t filesize = ftell(fp);
-    if(filesize == 0){
-        fclose(fp);
-        return -1;
-    }
-    fseek(fp, 0, SEEK_SET);
-    *menuText = malloc(sizeof(char) * filesize + 1);
-    if(!menuText){
-        fclose (fp);
-        return -1;
-    }
-    for(int i = 0 ; i < filesize ; i++){
-        fseek(fp, i, SEEK_SET);
-        (*menuText)[i] = fgetc(fp);
-    }
-    (*menuText)[filesize+1] = '\0';
+    error = readMenuFileOps(fp, &filesize, menuText);
     fclose(fp);
-    return 0;
+    return error;
 }
 
 void printToScreen(char *input, int padding_top, int padding_bottom){
@@ -108,10 +112,12 @@ void printToScreen(char *input, int padding_top, int padding_bottom){
 }
 
 int menuPrint(char *menuSection, int padding_top, int padding_bottom){
+    //malinit
     char *menuText = NULL;
     if(readMenuFile(menuSection, &menuText) != 0)
         return -1;
     printToScreen(menuText, padding_top, padding_bottom);
+    //malinit
     free(menuText);
     return 0;
 }

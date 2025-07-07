@@ -28,7 +28,7 @@ int addPageInfo(char **string, int page, int itemsPerPage, int itemTotal, char *
     if(itemTotal%itemsPerPage != 0) maxPages++;
     if((page+1) * itemsPerPage > itemTotal){
         maxItemPrint = itemTotal;
-    }else{
+    } else {
         maxItemPrint = itemsPerPage*(page+1);
     }
     sprintf(pageCur,"pagina %i de %i", (page+1), maxPages);

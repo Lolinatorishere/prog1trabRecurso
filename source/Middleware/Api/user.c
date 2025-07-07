@@ -176,7 +176,12 @@ int createUserString(char **string, USERS *users, int userTotal, int usersPerPag
      * | name:
      * \ pwd:
     */
-    *string = malloc(sizeof(char) * (usersPerPage * (700)));
+    if(*string == NULL){
+        *string = malloc(sizeof(char) * (usersPerPage * (700)));
+    } else {
+        char *temp = realloc(*string, sizeof(char) * (usersPerPage * (700)));
+        *string = temp;
+    }
     int index = 0;
     char buffer[TXT_CONST];
     int ut_id = strlen(" / alunoId:");
@@ -388,7 +393,8 @@ bool userValidate(char *username,char *password, USERS *user){
     return 0;
 }
 
-int getAllUsers(char **string, int usersPerPage, int *page, char *special){//returns a srting of all users with page addons
+//returns a srting of all users with page addons
+int getAllUsers(char **string, int usersPerPage, int *page, char *special){
     int64_t userTotal = readTotalUsers();
     if(userTotal == 0)
         return -1;
@@ -440,8 +446,7 @@ int searchForUsername(char **string, char *search, int usersPerPage, int page){
 }
 
 int searchForUserId(char **string, int search, int usersPerPage, int page){
-    int64_t userTotal = readTotalUsers();
-    USERS *users = malloc(sizeof(USERS) * (userTotal + 1));
+    int64_t userTotal = readTotalUsers(); USERS *users = malloc(sizeof(USERS) * (userTotal + 1));
     int64_t index = 0;
     if(userTotal == 0)
         return -1;
