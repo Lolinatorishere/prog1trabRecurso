@@ -91,6 +91,8 @@ void login(USERS *user){
         for(int i = strlen(password)-1 ; i < 256 ; i++){
             password[i] = '\0';
         }
+        trim(username);
+        trim(password);
         if(userValidate(username, password, user) == 0){
             printf("Bem vindo %s\n", user->userName);
             sleep(2);
