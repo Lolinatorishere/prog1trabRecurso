@@ -42,4 +42,11 @@
     #ifndef EVENTINDEX
         #define EVENTINDEX "./Data/eventIndex.dat"
     #endif
+    //debug shenanigans so i can grep better
+    #ifndef fileopen
+        #define fileopen fopen
+    #endif
+    #ifndef fileclose
+        #define fileclose fclose
+    #endif
 #endif

@@ -129,39 +129,40 @@ EVENTINDEXHELPER *searchEventIndexId(EVENTINDEXHELPER *index, int64_t indexSize,
     return NULL;
 }
 
-int loadStudentsFromEventIndex(EVENTS *event){
-    int total = 0;
-    int indexPos = -1;
-    EVENTINDEXHELPER *curentIndex = NULL;
-    FILE *fp = fopen(EVENTINDEX, "rb");
+int loadStudentsFromEventIndexOps(FILE *fp, int total, int *indexPos, EVENTINDEXHELPER **index, EVENTINDEXHELPER *currentIndex){
+    /*fplock*/fp = fopen(EVENTINDEX, "rb");
     if(!fp)
         return -1;
-    fread(&total, sizeof(int), 1, fp);
     EVENTINDEXHELPER *index = malloc(sizeof(EVENTINDEXHELPER) * total + 1);
-    if(!index){
-        fclose(fp);
+    if(!index)
         return -1;
-    }
-    fread(&index, sizeof(EVENTINDEXHELPER), total, fp);
-    curentIndex = searchEventIndexId(index, total, event->eventId, &indexPos);
-    if(!curentIndex) {
-        free(index);
-        fclose(fp);
+    fread((*index), sizeof(EVENTINDEXHELPER), total, fp);
+    curentIndex = searchEventIndexId((*index), total, event->eventId, &indexPos);
+    if(!curentIndex)
         return -1
-    }
     fseek(fp, curentIndex.offset, SEEK_SET);
-    int students = curentIndex.howManyStudents;;
-    if(students < 1){
-        free(index);
-        fclose(fp);
+    int students = curentIndex.howManyStudents;
+    if(students < 1)
         return -1;
-    }
     if(curentIndex.howManyStudents > event->limit)
         students = event->limit;
     fread(event->participants, sizeof(int), students, fp);
-    free(index);
-    fclose(fp);
+    fread(&total, sizeof(int), 1, fp);
     return 0;
+}
+
+int loadStudentsFromEventIndex(EVENTS *event){
+    int total = 0;
+    int error = 0;
+    int indexPos = -1;
+    /*malinit*/ EVENTINDEXHELPER *curentIndex = NULL;
+    EVENTINDEXHELPER *index = NULL;
+    /*fpstart*/FILE *fp = NULL;
+    error = loadStudentsFromEventIndexOps(fp, total, &indexPos, &index, *currentIndex);
+    if(index)
+    /*malend*/free(index);
+    /*fpend*/fclose(fp);
+    return error;
 }
 
 //adds new index in sorted position
@@ -190,61 +191,41 @@ int sortIndex(EVENTINDEXHELPER *index, EVENTINDEXHELPER new, int sizeventId){
     return result;
 }
 
-int updateEventStudentIndex(int *eventStudents, int totalStudents, int eventId, int new){
-    //unfortunately we have to load the entire file before updating
-    //because we have no idea how the new memory layout will look like
-    int total = 0,
-        indexPos = -1;
-    int64_t indexstudentpos = 0,
-            indexwritepos = 0;
-    EVENTINDEXHELPER newIndex = {eventId, totalStudents, 0},
-                     *curentIndex = NULL;
-    FILE *fp = fopen(EVENTINDEX, "rb");
+int updateEventStudentIndexOps(FILE *fp, EVENTINDEXHELPER *index, int **studentIds, int total, int *indexPos, EVENTINDEXHELPER newIndex){
+    /*fplock*/fp = fopen(EVENTINDEX, "rb");
     if(!fp)
         return -1;
     fread(&total, sizeof(int), 1, fp);
-    int **studentIds = malloc(sizeof(int*) * total + 1);
-    if(!students){
-        fclose(fp);
+    *studentIds = malloc(sizeof(int*) * total + 1);
+    if(!students)
         return -1;
-    }
-    EVENTINDEXHELPER *index = malloc(sizeof(EVENTINDEXHELPER) * total + 1);
-    if(!index){
-        free(studentIds);
-        fclose(fp);
+    index = malloc(sizeof(EVENTINDEXHELPER) * total + 1);
+    if(!index)
         return -1;
-    }
-    if(searchEventIndexId(index, total, eventId, &indexPos) && new == 1){
-        free(index);
-        free(studentIds);
-        fclose(fp);
+    //exists and is 1 returns
+    //doesnt and is 1 continues
+    //exists and is 0 continues
+    //doesnt and is 0 returns
+    if((searchEventIndexId(index, total, eventId, indexPos) == NULL) == (new == 1))
         return 1;
-    }
     fread(&index, sizeof(EVENTINDEXHELPER), total, fp);
     for(int i = 0 ; i < total ; i++){
         int studentIds[i] = malloc(sizeof(int)*index[i].howManyStudents + 1);
         fread(studentIds[i], sizeof(int), index[i].howManyStudents, fp);
     }
+    index[*indexPos].howManyStudents = totalStudents;
     if(new == 1){
-        indexPos = sortIndex(index, newIndex, total);
+        *indexPos = sortIndex(index, newIndex, total);
         //loads new students at the end of the malloced array
         studentIds[total] = malloc(sizeof(int)*totalStudents + 1);
         for(int i = 0 ; i < totalStudents ; i++)
             studentIds[total][i] = eventStudents[i];
         total++;
-    }else{
-        index[indexPos].howManyStudents = totalStudents;
     }
     fclose(fp);
-    *fp = fopen(EVENTINDEX, "wb");
-    if(!fp){
-        free(index);
-        for(int i = 0 ; i < total ; i++)
-            free(studentIds[i]);
-        free(studentIds);
-        fclose(fp);
+    /*fpstrt*/ fp = fopen(EVENTINDEX, "wb");
+    if(!fp)
         return -1;
-    }
     fwrite(&total, sizeof(int), 1, fp);
     fwrite(index, sizeof(EVENTINDEXHELPER), total, fp);
     //file updating here
@@ -281,11 +262,32 @@ int updateEventStudentIndex(int *eventStudents, int totalStudents, int eventId, 
         }
         iterator = i;
     }
-    free(index);
-    for(int i = 0 ; i < total ; i++)
-        free(studentIds[i]);
-    free(studentIds);
-    fclose(fp);
+    return 0;
+}
+
+int updateEventStudentIndex(int *eventStudents, int totalStudents, int eventId, int new){
+    //unfortunately we have to load the entire file before updating
+    //because we have no idea how the new memory layout will look like
+    int total = 0,
+        indexPos = -1,
+        error = 0,
+    /*malinit*/**studentIds = NULL;
+    int64_t indexstudentpos = 0,
+            indexwritepos = 0;
+    EVENTINDEXHELPER newIndex = {eventId, totalStudents, 0},
+                     *curentIndex = NULL,
+                     *index = NULL;
+    /*fpstrt*/FILE *fp = NULL
+    error = updateEventStudentIndexOps(fp, index, studentIds, total, &indexPos, newIndex);
+    if(index)
+    /*malend*/free(index);
+    if(studentIds){
+        for(int i = 0 ; i < total ; i++)
+            if(studentIds[i] != NULL)
+                /*malend*/free(studentIds[i]);
+        /*malend*/free(studentIds);
+    }
+    /*fpend*/fclose(fp);
     return 0;
 }
 

@@ -95,10 +95,10 @@ int readMenuFile(char *menuSection, char **menuText){
     strcpy(dir, "./menus/");
     strcat(dir, menuSection);
     strcat(dir,".menu");
-    FILE *fp = fopen(dir, "r");
+    /*fpstrt*/FILE *fp = fopen(dir, "r");
     free(dir);
     error = readMenuFileOps(fp, &filesize, menuText);
-    fclose(fp);
+    /*fpend*/fclose(fp);
     return error;
 }
 
@@ -112,13 +112,11 @@ void printToScreen(char *input, int padding_top, int padding_bottom){
 }
 
 int menuPrint(char *menuSection, int padding_top, int padding_bottom){
-    //malinit
-    char *menuText = NULL;
+    /*malinit*/ char *menuText = NULL;
     if(readMenuFile(menuSection, &menuText) != 0)
         return -1;
     printToScreen(menuText, padding_top, padding_bottom);
-    //malinit
-    free(menuText);
+    /*malend*/free(menuText);
     return 0;
 }
 

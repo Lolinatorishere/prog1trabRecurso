@@ -78,40 +78,46 @@ void returnText(char *where, int HowLong){
     return;
 }
 
+int firstTimeOps(FILE *in, FILE *create, int *first){
+    in = fileopen(STUDENTDATA, "r");
+    if(!in){
+        create = fileopen(STUDENTDATA, "w");
+        if(!create)
+            return -1;
+        fileclose(create);
+    }
+    in = fileopen(EVENTDATA, "r");
+    if(!in){
+        create = fileopen(EVENTDATA, "w");
+        if(!create)
+            return -1;
+        fileclose(create);
+    }
+    in = fileopen(EVENTINDEX, "r");
+    if(!in){
+        create = fileopen(EVENTINDEX, "w");
+        if(!create)
+            return -1;
+        fileclose(create);
+    }
+    in = fileopen(USERDATA, "r");
+    if(!in){
+        *first = 1;
+        FILE *create = fileopen(USERDATA, "w");
+        if(!create)
+            return -1;
+        fileclose(create);
+    }
+    if(readTotalUsers() == 0)
+        *first = 1;
+}
+
 int firstTime(){
     int first = 0;
-    FILE *in = fopen(STUDENTDATA, "r");
+    FILE *in = NULL;
     FILE *create = NULL;
-    if(!in){
-        create = fopen(STUDENTDATA, "w");
-        if(!create)
-            return -1;
-        fclose(create);
-    }
-    in = fopen(EVENTDATA, "r");
-    if(!in){
-        create = fopen(EVENTDATA, "w");
-        if(!create)
-            return -1;
-        fclose(create);
-    }
-    in = fopen(EVENTINDEX, "r");
-    if(!in){
-        create = fopen(EVENTINDEX, "w");
-        if(!create)
-            return -1;
-        fclose(create);
-    }
-    in = fopen(USERDATA, "r");
-    if(!in){
-        first = 1;
-        FILE *create = fopen(USERDATA, "w");
-        if(!create)
-            return -1;
-        fclose(create);
-    }
-    if(readTotalUsers() == 0) first = 1;
+    firstTimeOps(in, create, &first);
     if(in)
-        fclose(in);
+        fileclose(in);
     return first;
 }

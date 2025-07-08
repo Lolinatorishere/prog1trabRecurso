@@ -12,7 +12,7 @@
 int associateStudentUser(int *userId, int *studentId){
     STUDENTS *student;
     USERS *user;
-    getStudent(student, *studentId);
+    readStudent(student, *studentId);
     if(student->userId != -1)
         return -1;
     getUser(user, *studentId);
@@ -26,7 +26,7 @@ int associateStudentUser(int *userId, int *studentId){
 int DissasociateStudentUser(int *userId, int *studentId){
     STUDENTS *student;
     USERS *user;
-    getStudent(student, *studentId);
+    readStudent(student, *studentId);
     if(student->userId == -1)
         return -1;
     getUser(user, *studentId);
