@@ -66,7 +66,7 @@ void dynamic_line_print(char *string, int text_const, int txt_indent, int txt_ma
     }
 }
 
-int readMenuFileOps(FILE *fp, int64_t *filesize, char **menuText){
+int readMenuFileLogic(FILE *fp, int64_t *filesize, char **menuText){
     if(fp == NULL)
         return -1;
     fseek(fp, 0, SEEK_END);
@@ -97,7 +97,8 @@ int readMenuFile(char *menuSection, char **menuText){
     strcat(dir,".menu");
     /*fpstrt*/FILE *fp = fopen(dir, "r");
     free(dir);
-    error = readMenuFileOps(fp, &filesize, menuText);
+    error = readMenuFileLogic(fp, &filesize, menuText);
+    if(fp)
     /*fpend*/fclose(fp);
     return error;
 }
@@ -123,7 +124,7 @@ int menuPrint(char *menuSection, int padding_top, int padding_bottom){
 int advancedPrint(char *input, int padding_top, int padding_bottom, int realoc){
     if(input == NULL)
         return -1;
-    if(realoc == 0){
+    if(realoc == 1){
         int inlen = strlen(input);
         char *resize = realloc(input, sizeof(char) * inlen + 2);
         input = resize;
