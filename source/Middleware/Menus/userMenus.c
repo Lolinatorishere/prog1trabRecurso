@@ -165,11 +165,11 @@ void idSearch(){
 }
 
 void typeSearch(){
-    char buffer[256] = {'\0'};
-    char *menuText = NULL;
     USERS *users = NULL;
     int64_t totalUsers = 0;
     int64_t input = 0;
+    char buffer[256] = {'\0'};
+    char *menuText = NULL;
     int page = 0;
     while(1){
         menuPrint("searchingUser", 1, 1);
@@ -232,7 +232,7 @@ void userSearchMenu(){
     }
 }
 
-void editingUser(char *buffer, char *menuText, USERS adminUser, int page){
+int editingUser(char *buffer, char *menuText, USERS adminUser, int page){
     USERS user = setUser();
     char password[256] = {'\0'},
          username[256] = {'\0'},
@@ -241,16 +241,13 @@ void editingUser(char *buffer, char *menuText, USERS adminUser, int page){
     int input = 0,
         *type = NULL,
         *alunoId = NULL,
-        selectedID = 0;
-    selectedID = int64FromString(buffer);
-    if(getUser(&user, selectedID) < 0){
-        free(menuText);
-        return;
-    }
+        selectedID = int64FromString(buffer);
+    if(getUser(&user, selectedID) < 0)
+        return -1;
     if(user.userId == -1){
         menuPrint("userNonExists", 1, 1);
         sleep(1);
-        return;
+        return -1;
     }
     while(buffer[0] != '0'){
         type = NULL;
@@ -267,7 +264,7 @@ void editingUser(char *buffer, char *menuText, USERS adminUser, int page){
         input = int64FromString(buffer);
         if(buffer[0] == '\n' || buffer[0] == '\0'){
             free(menuText);
-            return;
+            return -1;
         }
         if(input == 0){
             buffer[0] = '0';
@@ -316,7 +313,7 @@ void editingUser(char *buffer, char *menuText, USERS adminUser, int page){
             case -1:
                 printf("System Error\n");
                 sleep(1);
-                return;
+                return -1;
             case 0:
                 printf("user updated\n");
                 sleep(1);
@@ -328,7 +325,7 @@ void editingUser(char *buffer, char *menuText, USERS adminUser, int page){
         strncpy(password, "\0", 256);
         strcpy(buffer, "\0");
     }
-    return;
+    return -1;
 }
 
 void userAlterMenu(USERS adminUser){
