@@ -41,6 +41,8 @@ void copyUser(USERS *dst, USERS src){
 }
 
 USERS *searchUsername(USERS *userList, int64_t listSize, char *username, int64_t *index) { // very slow
+    if(listSize == 0)
+        return NULL;
     int ulen = strlen(username);
     for(int64_t i = 0 ; i < listSize ; i++){
         int check = 0;
@@ -56,6 +58,8 @@ USERS *searchUsername(USERS *userList, int64_t listSize, char *username, int64_t
 }
 
 int searchWithType(USERS *userList, USERS *hits, int64_t listSize, int64_t *hit_size, int type){
+    if(listSize == 0)
+        return -1;
     int64_t total = 0;
     for(int i = 0 ; i < listSize ; i++){
         if(userList[i].type != type)continue;
@@ -69,6 +73,8 @@ int searchWithType(USERS *userList, USERS *hits, int64_t listSize, int64_t *hit_
 //This is assuming the ids in the List are sequential which they absolutely should be
 //binary searches the requested id
 USERS *searchUserId(USERS *userList, int64_t listSize, int id, int64_t *index) {
+    if(listSize == 0)
+        return NULL;
     int64_t low = 0, high = listSize - 1;
     while (low <= high) {
         int64_t mid = low + (high - low) / 2;
@@ -85,6 +91,8 @@ USERS *searchUserId(USERS *userList, int64_t listSize, int id, int64_t *index) {
 }
 
 USERS *searchUserStudentId(USERS *userList, int64_t listSize, int *studentId, int64_t *index) { // very slow
+    if(listSize == 0)
+        return NULL;
     for(int64_t i = 0 ; i < listSize ; i++){
         if(userList[i].studentId != *studentId)continue;
         return &userList[i];
@@ -92,7 +100,7 @@ USERS *searchUserStudentId(USERS *userList, int64_t listSize, int *studentId, in
     return NULL;
 }
 
-int updateUserData(USERS userList[], int64_t listSize){
+int updateUserData(USERS *userList, int64_t listSize){
     FILE *fp = fopen(USERDATA, "wb");
     if(!fp)
         return -1;
@@ -109,15 +117,8 @@ int updateUserData(USERS userList[], int64_t listSize){
 int64_t readTotalUsers(){
     int64_t totalUsers = 0;
     FILE *fp = fopen(USERDATA, "rb");
-    if(!fp){
-        //guarantees the existance of USERDATA dir file
-        FILE *makeFile = fopen(USERDATA, "wb");
-        fclose(makeFile);
-        fp = fopen(USERDATA, "rb");
-        if(!fp)
-            //or not, something wack has happened
-            return 0;
-    }
+    if(!fp)
+        return 0;
     fseek(fp, 0, SEEK_END);
     if(ftell(fp) == 0){
         fclose(fp);
@@ -126,7 +127,6 @@ int64_t readTotalUsers(){
     fseek(fp, 0, SEEK_SET);
     fread(&totalUsers, sizeof(int64_t), 1, fp);
     fclose(fp);
-    if(totalUsers == 0) totalUsers = 1;
     return totalUsers;
 }
 
@@ -245,21 +245,17 @@ int createUserString(char **string, USERS *users, int userTotal, int usersPerPag
 }
 
 int createUser(char *username, char *password, int type){
-    int64_t userTotal = readTotalUsers();
+    int64_t userTotal = readTotalUsers(),
+            index = 0;
     USERS *users = malloc(sizeof(USERS) * (userTotal + 1));
-    int64_t index = 0;
-    switch(loadUserData(users)){
-        case 0:
-            if(searchUsername(users, userTotal, username, &index) != NULL){
-                free(users);
-                return 0;
-            }
-            break;
-        case -1:
-            free(users);
-            return -1;
-        default:
-            break;
+    if(!users)
+        return -1;
+    int error = loadUserData(users);
+    if(error == -1)
+        goto cleanup;
+    if(searchUsername(users, userTotal, username, &index)){
+        error = 1;
+        goto cleanup;
     }
     USERS *newUser = &users[userTotal];
     strncpy(newUser->userName, username, 255);
@@ -272,114 +268,113 @@ int createUser(char *username, char *password, int type){
     else newUser->userId = users[userTotal - 1].userId + 1;
     newUser->studentId = -1;
     userTotal++;
-    if(updateUserData(users, userTotal) == -1)
-        return -1;
+    if(updateUserData(users, userTotal) == -1){
+        error = -1;
+        goto cleanup;
+    }
+cleanup:
     free(users);
-    return 1;
+    return error;
 }
 
 int updateUser(int id, char *username, char *password, int *type, int *studentId){
     if(username[0] == '\0' && password[0] == '\0' && type == NULL && studentId == NULL)
         return 1;
     int error = 0;
-    int64_t index = 0;
-    int64_t userTotal = readTotalUsers();
+    int64_t index = 0,
+            userTotal = readTotalUsers(),
+            data = 0;
     USERS *users = malloc(sizeof(USERS) * (userTotal+1));
-    if(!users){ 
+    if(!users)
         return -1;
+    error = loadUserData(users);
+    if(error != 0)
+        goto cleanup;
+    if(!searchUserId(users, userTotal, id, &index)){
+        error = 2;
+        goto cleanup;
     }
-    switch(loadUserData(users)){
-        case -1:
-            return -1;
-        case 1:
-            return 1;
-        default:
-            if(!searchUserId(users, userTotal, id, &index)){
-                error = 2;
-                break;
-            }
-            if(username[0] != '\0'){
-                int64_t data = 0;
-                if(searchUsername(users, userTotal, username, &data) != NULL) {
-                    if(users != NULL) free(users);
-                    error = 3;
-                    break;
-                }
-                username[strlen(username)] = '\0';
-                strcpy(users[index].userName, username);
-            }
-            if(password[0] != '\0'){
-                password[strlen(password)] = '\0';
-                strcpy(users[index].password, password);
-            }
-            if(type != NULL)
-                users[index].type = *type;
-            if(studentId != NULL)
-                users[index].studentId = *studentId;
-            updateUserData(users, userTotal);
-            break;
+    if(username[0] != '\0'){
+        if(searchUsername(users, userTotal, username, &data)){
+            error = 3;
+            goto cleanup;
+        }
+        username[strlen(username)] = '\0';
+        strcpy(users[index].userName, username);
     }
+    if(password[0] != '\0'){
+        password[strlen(password)] = '\0';
+        strcpy(users[index].password, password);
+    }
+    if(type != NULL)
+        users[index].type = *type;
+    if(studentId != NULL)
+        users[index].studentId = *studentId;
+    updateUserData(users, userTotal);
+    goto cleanup;
+cleanup:
     free(users);
     return error;
 }
 
 int deleteUser(int id){
-    int64_t index = 0;
-    USERS *check = NULL;
-    USERS user;
-    int64_t userTotal = readTotalUsers();
-    USERS *users = malloc(sizeof(USERS) * (userTotal + 1));
+    int64_t index = 0,
+            userTotal = readTotalUsers();
+    USERS *check = NULL,
+          *users = malloc(sizeof(USERS) * (userTotal + 1)),
+          user;
     if(!users)
         return -1;
-    switch(loadUserData(users)){
-        case -1:
-            return -1;
-        case 1:
-            return 1;
-        default:
-            if(!searchUserId(users, userTotal, id, &index)){
-                free(users);
-                return 0;
-            }
-            // aray[x] replaced with [x+n];
-            // because i dont know how to do it better kek;
-            if(index != userTotal-1){
-                for(int i = index ; i < userTotal-1 ; i++){
-                    users[i] = users[i+1];
-                }
-            }
-            updateUserData(users, userTotal-1);
-            free(users);
-            return 0;
+    int error = loadUserData(users);
+    if(error != 0)
+        goto cleanup;
+    if(!searchUserId(users, userTotal, id, &index)){
+        error = -1;
+        goto cleanup;
     }
+    // aray[x] replaced with [x+n];
+    // because i dont know how to do it better kek;
+    if(index < userTotal-1)
+        for(int i = index ; i < userTotal-1 ; i++)
+            users[i] = users[i+1];
+    updateUserData(users, userTotal-1);
+    goto cleanup;
+cleanup:
+    free(users);
+    return error;
 }
 
 bool userValidate(char *username,char *password, USERS *user){
-    int64_t userTotal = 0;
-    int checks = 0;
-    userTotal = readTotalUsers();
+    int64_t userTotal = readTotalUsers();;
+    int checks = 0,
+        error = 0,
+        uCheck = strlen(username),
+        pCheck = strlen(password);
     USERS *users = malloc(sizeof(USERS) * (userTotal + 1));
     if(!users)
         return -1;
     *user = setUser();
-    if(loadUserData(users) != 0){
-        free(users);
-        return 1;
-    }
+    error = loadUserData(users);
+    if(error != 0)
+        goto cleanup;
     for(int i = 0 ; i < userTotal ; i++){
         int j = 0;
         int uLen = strlen(users[i].userName);
-        if(uLen != strlen(username)) continue;
-        for(j = 0 ; j < uLen ; j++){
-            if(users[i].userName[j] != username[j]) break;
-        }
-        if(j != uLen) continue;
+        if(uLen != uCheck)
+            continue;
+        for(j = 0 ; j < uLen ; j++)
+            if(users[i].userName[j] != username[j])
+                break;
+        if(j != uLen)
+            continue;
         int plen = strlen(users[i].password);
-        if(plen != strlen(password)) continue;
-        for(j = 0 ; j < plen ; j++){
-            if(users[i].password[j] != password[j]) break;
-        }
-        if(j != plen) continue;
+        if(plen != pCheck)
+            break;
+        for(j = 0 ; j < plen ; j++)
+            if(users[i].password[j] != password[j])
+                break;
+        if(j != plen)
+            continue;
         strcpy(user->userName, users[i].userName);
         strcpy(user->password, users[i].password);
         user->type = users[i].type;
@@ -387,100 +382,103 @@ bool userValidate(char *username,char *password, USERS *user){
         user->studentId = users[i].studentId;
         break;
     }
-    free(users);
     if(user->type < 0)
-        return -1;
-    return 0;
+        error = -1;
+    goto cleanup;
+cleanup:
+    free(users);
+    return error;
 }
 
 //returns a srting of all users with page addons
 int getAllUsers(char **string, int usersPerPage, int *page, char *special){
     int64_t userTotal = readTotalUsers();
-    if(userTotal == 0)
-        return -1;
-    int maxPages = userTotal/usersPerPage;
-    if(userTotal%usersPerPage != 0){
-        maxPages++;
-    }
-    if (*page >= maxPages) *page = maxPages-1;
-    if(*page<0)*page = 0;
     USERS *users = malloc(sizeof(USERS) * (userTotal + 1));
+    int maxPages = userTotal/usersPerPage,
+        error = 0;
     if(!users)
         return -1;
-    if(loadUserData(users) != 0){
-        free(users);
-        return -1;
-    }
-    if(createUserString(string, users, userTotal, usersPerPage, *page) != 0){
-        free(users);
-        return -1;
-    }
+    if(userTotal%usersPerPage != 0)
+        maxPages++;
+    if (*page >= maxPages)
+        *page = maxPages-1;
+    if(*page < 0)
+        *page = 0;
+    error = loadUserData(users);
+    if(error != 0)
+        goto cleanup;
+    error = createUserString(string, users, userTotal, usersPerPage, *page);
+    if(error != 0)
+        goto cleanup;
     addPageInfo(string, *page, usersPerPage, userTotal, special, "Users");
+    goto cleanup;
+cleanup:
     free(users);
-    return 0;
+    return error;
 }
 
 // todo move user pointer to outside so i dont have to repeat the search every fkn time
 int searchForUsername(char **string, char *search, int usersPerPage, int page){
-    int64_t userTotal = readTotalUsers();
-    USERS *users = malloc(sizeof(USERS) * (userTotal + 1));
-    int64_t index = 0;
-    if(userTotal == 0)
+    int64_t userTotal = readTotalUsers(),
+            index = 0;
+    USERS *users = malloc(sizeof(USERS) * (userTotal + 1)),
+          *user = NULL;
+    if(!users)
         return -1;
-    if(loadUserData(users) != 0){
-        free(users);
-        return 1;
-    }
-    USERS *user = searchUsername(users, userTotal, search, &index);
+    int error = loadUserData(users);
+    if(error != 0)
+        goto cleanup;
+    user = searchUsername(users, userTotal, search, &index);
     if(!user){
-        //todo work with deepUsernameSearch instead
-        free(users);
-        return 1;
+        error = -1;
+        goto cleanup;
     }
-    if(createUserString(string, user, 1, 1, 0) != 0){
-        free(users);
-        return -1;
-    }
+    error = createUserString(string, user, 1, 1, 0);
+    if(error != 0)
+        goto cleanup;
+    goto cleanup;
+cleanup:
     free(users);
-    return 0;
+    return error;
 }
 
 int searchForUserId(char **string, int search, int usersPerPage, int page){
-    int64_t userTotal = readTotalUsers(); USERS *users = malloc(sizeof(USERS) * (userTotal + 1));
-    int64_t index = 0;
-    if(userTotal == 0)
+    int64_t userTotal = readTotalUsers(),
+            index = 0;
+    USERS *users = malloc(sizeof(USERS) * (userTotal + 1)),
+          *user = NULL;
+    if(!users)
         return -1;
-    if(loadUserData(users) != 0){
-        free(users);
-        return 1;
-    }
-    USERS *user = searchUserId(users, userTotal, search, &index);
-    if(user == NULL){
+    int error = loadUserData(users);
+    if(error != 0)
+        goto cleanup;
+    user = searchUserId(users, userTotal, search, &index);
+    if(!user){
         (*string) = malloc(sizeof(char) * 64);
         strcpy((*string), "Utilizador Nao Existe\n");
-    }else{
-        if(createUserString(string, user, 1, 1, 0) != 0){
-            free(users);
-            return -1;
-        }
+        goto cleanup;
     }
+    error = createUserString(string, user, 1, 1, 0);
+    if(error != 0)
+        goto cleanup;
+cleanup:
     free(users);
-    return 0;
+    return error;
 }
 
 int searchForUserType(char **string, USERS **userList, int64_t *totalUsers, int search, int usersPerPage, int *page){
+    int error = 0;
     if((*userList) != NULL){
         int maxPages = *totalUsers/usersPerPage;
-        if(*totalUsers%usersPerPage != 0){
+        if(*totalUsers%usersPerPage != 0)
             maxPages++;
-        }
-        if(*page >= maxPages) *page = maxPages-1;
-        if(*page<0)*page = 0;
-        if(createUserString(string, (*userList), (*totalUsers), usersPerPage, *page) != 0){
-            free((*string));
-            free((*userList));
+        if(*page >= maxPages)
+            *page = maxPages-1;
+        if(*page < 0)
+            *page = 0;
+        error = createUserString(string, (*userList), (*totalUsers), usersPerPage, *page);
+        if(error != 0)
             return -1;
-        }
         addPageInfo(string, *page, *totalUsers, *totalUsers, NULL, "Users");
         return 0;
     }
@@ -490,63 +488,69 @@ int searchForUserType(char **string, USERS **userList, int64_t *totalUsers, int 
         return -1;
     USERS *users = malloc(sizeof(USERS) * (userTotal + 1));
     if(!users){
-        free((*string));
-        return -1;
+        error = -1;
+        goto cleanup;
     }
     *userList = malloc(sizeof(USERS) * (userTotal + 1));
     if(!userList){
-        free((*string));
-        free(users);
-        return -1;
+        error = -1;
+        goto cleanup;
     }
-    if(loadUserData(users) != 0){
-        free((*string));
-        free(users);
-        return 1;
-    }
+    error = loadUserData(users);
+    if(error != 0)
+        goto cleanup;
     searchWithType(users, (*userList), userTotal, &hit_size, search);
-    free(users);
     *totalUsers = hit_size;
-    if(createUserString(string, (*userList), *totalUsers, usersPerPage, *page) != 0){
-        free((*string));
-        free(userList);
-        return -1;
-    }
+    error = createUserString(string, (*userList), *totalUsers, usersPerPage, *page);
+    if(error != 0)
+        goto cleanup;
     addPageInfo(string, *page, usersPerPage, *totalUsers, NULL, "Users");
-    return 0;
+    goto cleanup;
+cleanup:
+    if(users)
+        free(users);
+    return error;
 }
 
 int getUser(USERS *user, int id){
     int64_t userTotal = readTotalUsers();
     int64_t index = 0;
-    USERS *temp;
-    USERS *users = malloc(sizeof(USERS) * (userTotal + 1));
-    if(loadUserData(users) != 0){
-        free(users);
+    USERS *temp,
+          *users = malloc(sizeof(USERS) * (userTotal + 1));
+    if(!users)
         return -1;
-    }
+    int error = loadUserData(users);
+    if(error != 0)
+        goto cleanup;
     temp = searchUserId(users, userTotal, id, &index);
-    if(temp == NULL){
-        free(users);
-        return 1;
+    if(!temp){
+        error = 1;
+        goto cleanup;
     }
     copyUser(user, (*temp));
-    return 0;
+    goto cleanup;
+cleanup:
+    free (users);
+    return error;
 }
 
 int getUsers(USERS *hits, int *ids, int userAmount){
-    int64_t userTotal = readTotalUsers();
-    int64_t index = 0;
+    int64_t userTotal = readTotalUsers(),
+            index = 0;
     USERS *users = malloc(sizeof(USERS) * (userTotal + 1));
-    if(loadUserData(users) != 0){
-        free(users);
+    if(!users)
         return -1;
-    }
+    int error = loadUserData(users);
+    if(error != 0)
+        goto cleanup;
     for(int i = 0 ; i < userAmount ; i++){
         USERS *user = searchUserId(users, userTotal, ids[i], &index);
         copyUser(&hits[i], *user);
         if(&hits[i] == NULL)
             hits[i] = setUser();
     }
-    return 0;
+    goto cleanup;
+cleanup:
+    free(users);
+    return error;
 }
