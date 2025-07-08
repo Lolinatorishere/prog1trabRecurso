@@ -44,7 +44,7 @@ int startUpCheck(int recursion){
                 }
                 trim(buffer);
                 if(createUser("admin", buffer, 100) != 1) continue;
-                advancedPrint("user Admin foi criado com sucesso", 1, 1);
+                advancedPrint("user Admin foi criado com sucesso ", 1, 1, 0);
                 sleep(1);
                 return 0;
             }

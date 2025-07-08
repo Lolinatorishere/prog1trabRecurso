@@ -50,7 +50,7 @@ void userIndexMenu(){
     char buffer[256] = {'\0'};
     while(buffer[0] != '0'){
         getAllUsers(&menuText, 5, &page, NULL);
-        advancedPrint(menuText, 1, 1);
+        advancedPrint(menuText, 1, 1, 1);
         //handle menuInput
         fgets(buffer, 256, stdin);
         if(buffer[0] == '+')
@@ -74,7 +74,7 @@ void userDeleteMenu(USERS adminUser){
     int str_cmp = 0;
     while(buffer[0] != '0'){
         getAllUsers(&menuText, 5, &page, extras);
-        advancedPrint(menuText, 1, 1);
+        advancedPrint(menuText, 1, 1, 1);
         fgets(buffer, 256, stdin);
         if(buffer[0] == '+'){
             page++;
@@ -85,7 +85,7 @@ void userDeleteMenu(USERS adminUser){
         if(buffer[0] == 's' && buffer[1] == 'e' && buffer[2] == 'l'){
             selectedID = int64FromString(buffer);
             if(selectedID == adminUser.userId){
-                advancedPrint("Nao se pode apagar o utilizador proprio\n", 1, 1);
+                advancedPrint("Nao se pode apagar o utilizador proprio\n ", 1, 1, 0);
                 continue;
             }
             if(getUser(&user, selectedID) != 0){
@@ -94,8 +94,8 @@ void userDeleteMenu(USERS adminUser){
                 sleep(1);
                 return;
             }
-            sprintf(toPrint, "Tem A certeza que quer apagar\nUtilizador:\"%s\"\nTipo:%i\n", user.userName, user.type);
-            advancedPrint(toPrint, 1, 1);
+            sprintf(toPrint, "Tem A certeza que quer apagar\nUtilizador:\"%s\"\nTipo:%i\n ", user.userName, user.type);
+            advancedPrint(toPrint, 1, 1, 0);
             printf("escreve: \"C E R T E Z A\", para confirmar");
             fgets(buffer, 256, stdin);
             for(int i = 0 ; i < strlen(buffer); i++){
@@ -127,7 +127,7 @@ void usernameSearch(){
         search[strlen(search)-1] = '\0';
         switch(searchForUsername(&menuText, search, 5, page)){
         case 0:
-            advancedPrint(menuText, 1, 1);
+            advancedPrint(menuText, 1, 1, 1);
         break;
         case -1:
             free(menuText);
@@ -136,7 +136,7 @@ void usernameSearch(){
             menuPrint("userNonExists", 1, 1);
             break;
         }
-        advancedPrint(menuText, 1, 1);
+        advancedPrint(menuText, 1, 1, 1);
         free(menuText);
         fgets(search,256, stdin);
         input = int64FromString(search);
@@ -155,7 +155,7 @@ void idSearch(){
         fgets(buffer, 256, stdin);
         input = int64FromString(buffer);
         searchForUserId(&menuText, input, 5, page);
-        advancedPrint(menuText, 1, 1);
+        advancedPrint(menuText, 1, 1, 1);
         free(menuText);
         printf("para sair carrega 0:");
         fgets(buffer, 256, stdin);
@@ -186,7 +186,7 @@ void typeSearch(){
         strcpy(buffer, "\0");
         while(1){
             searchForUserType(&menuText, &users, &totalUsers, input, 5, &page);
-            advancedPrint(menuText, 1, 1);
+            advancedPrint(menuText, 1, 1, 1);
             fgets(buffer, 256, stdin);
             if(buffer[0] == '+')
                 page++;
@@ -262,7 +262,7 @@ void editingUser(char *buffer, char *menuText, USERS adminUser, int page){
         strcpy(menuText, copyhere);
         free(copyhere);
         strcat(menuText, editFunc);
-        advancedPrint(menuText, 1, 1);
+        advancedPrint(menuText, 1, 1, 1);
         fgets(buffer, 256, stdin);
         input = int64FromString(buffer);
         if(buffer[0] == '\n' || buffer[0] == '\0'){
@@ -340,7 +340,7 @@ void userAlterMenu(USERS adminUser){
     while(buffer[0] != '0'){
         input = 0;
         getAllUsers(&menuText, 5, &page, extras);
-        advancedPrint(menuText, 1, 1);
+        advancedPrint(menuText, 1, 1, 1);
         fgets(buffer, 256, stdin);
         if(buffer[0] == '+')
             page++;
@@ -362,7 +362,7 @@ void userStudentMenu(USERS adminUser){
     while(buffer[0] != '0'){
         input = 0;
         getAllUsers(&menuText, 5, &page, extras);
-        advancedPrint(menuText, 1, 1);
+        advancedPrint(menuText, 1, 1, 1);
         fgets(buffer, 256, stdin);
         if(buffer[0] == '+')
             page++;

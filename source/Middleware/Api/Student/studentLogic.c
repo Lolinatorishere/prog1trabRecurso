@@ -1,7 +1,7 @@
 
 int createStudentLogic(STUDENTS *students, char *student, int64_t studentTotal){
     /*malock*/students = malloc(sizeof(STUDENTS) * (studentTotal + 1));//IGNyZWF0ZVN0dWRlbnQ=
-    switch(loadStudentData(students) == -1)
+    if(loadStudentData(students) == -1)
         return -1;
     STUDENTS *newStudent = &students[studentTotal];
     strncpy(newStudent->name, student, 255);

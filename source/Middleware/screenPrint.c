@@ -120,14 +120,16 @@ int menuPrint(char *menuSection, int padding_top, int padding_bottom){
     return 0;
 }
 
-int advancedPrint(char *input, int padding_top, int padding_bottom){
+int advancedPrint(char *input, int padding_top, int padding_bottom, int realoc){
     if(input == NULL)
         return -1;
-    int inlen = strlen(input);
-    char *resize = realloc(input, sizeof(char) * inlen + 2);
-    input = resize;
-    strncpy(input, input, sizeof(input));
-    strcat(input, " ");
+    if(realoc == 0){
+        int inlen = strlen(input);
+        char *resize = realloc(input, sizeof(char) * inlen + 2);
+        input = resize;
+        strncpy(input, input, sizeof(input));
+        strcat(input, " ");
+    }
     printToScreen(input, padding_top, padding_bottom);
     return 0;
 }
