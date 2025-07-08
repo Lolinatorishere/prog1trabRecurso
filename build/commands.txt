@@ -1,5 +1,15 @@
-gcc ./source/main.c ./source/Middleware/screenPrint.c ./source/Middleware/stringParse.c ./source/Middleware/Menus/middleware.c  ./source/Middleware/Api/user.c ./source/Middleware/Api/student.c ./source/Middleware/Api/event.c ./source/Middleware/Data/middleware.c ./source/Middleware/Menus/menu.c -g -o ./main.out > compiler_errors.cmp 2>&1
+gcc ./source/main.c \
+./source/Middleware/screenPrint.c \
+./source/Middleware/stringParse.c \
+./source/Middleware/Api/user.c \
+./source/Middleware/Menus/middleware.c \
+./source/Middleware/Api/student.c \
+./source/Middleware/Api/event.c \
+./source/Middleware/Data/middleware.c \
+./source/Middleware/Menus/menu.c \
+-g -o ./main.out >compiler_errors.cmp 2>&1
 if [ $? -ne 0 ]; then
-    echo "Errors detected during compilation. Check compiler_errors.cmp for details."
+    printf "Errors detected during compilation.\nCheck compiler_errors.cmp for details.\n\n"
+    echo "Errors: $(grep -i "error:" compiler_errors.cmp | wc -l)"
+    echo "Warnings: $(grep -i "warning:" compiler_errors.cmp | wc -l)"
 fi
-
