@@ -87,7 +87,7 @@ void returnText(char *where, int HowLong){
     return;
 }
 
-int firstTimeOps(FILE *in, FILE *create, int *first){
+int firstTimeLogic(FILE *in, FILE *create, int *first){
     in = fileopen(STUDENTDATA, "r");
     if(!in){
         create = fileopen(STUDENTDATA, "w");
@@ -125,9 +125,9 @@ int firstTime(){
     int first = 0;
     FILE *in = NULL;
     FILE *create = NULL;
-    firstTimeOps(in, create, &first);
+    firstTimeLogic(in, create, &first);
     if(in)
-    fileclose(in);
+        fileclose(in);
     in = NULL;
     create = NULL;
     return first;

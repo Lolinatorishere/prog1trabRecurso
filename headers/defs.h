@@ -30,6 +30,9 @@
     #ifndef DATADIR
         #define DATADIR "./Data"
     #endif
+    #ifndef EVENTSUBDIR
+        #define EVENTSUBDIR "./Data/Events"
+    #endif
     #ifndef USERDATA
         #define USERDATA "./Data/userData.dat"
     #endif

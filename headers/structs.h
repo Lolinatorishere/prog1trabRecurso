@@ -26,6 +26,7 @@ typedef struct studentlist{
 }STUDENTLIST;
 
 typedef struct studentQueue{
+    int eventId;
     int total;
     STUDENTLIST *head;
     STUDENTLIST *tail;
@@ -34,13 +35,12 @@ typedef struct studentQueue{
 //ID ´unico, nome do evento, data, local, n´umero m´aximo de participantes, descricao e estado (ativo, cancelado, concluido).
 typedef struct events{
     int eventId;
-    char name[256];
-    time_t date;//unix time, aka seconds since 1970
-    char dateString[32]; //self described
-    char location[256];
     int limit; //max students
     int status; //-1 canceled, 0 planned, 1 concluded
-    STUDENTQUEUE *participants;//should only be a place in active memory not part of the struct, to avoid memory disalignment
+    time_t date;//unix time, aka seconds since 1970
+    char location[256];
+    char eventName[256];
+    char eventDesc[256];
 }EVENTS;
 
 typedef struct notif{

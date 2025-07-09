@@ -8,7 +8,35 @@
 #include "../../../headers/defs.h"
 #include "../../../headers/Menus/menuMiddleware.h"
 
+int64_t TotalEventAmount = 0;
+
+EVENTS setEvent(){
+    EVENTS event = {-1, -1, -2, 0, '\0', '\0', '\0' };
+    return event;
+}
+
+EVENTS *searchEventname(EVENTS *eventList, int64_t listSize, char *eventname, int64_t *index) { // very slow
+    if(listSize == 0)
+        return NULL;
+    int ulen = strlen(eventname);
+    for(int64_t i = 0 ; i < listSize ; i++){
+        int check = 0;
+        if(ulen != strlen(eventList[i].eventName))continue;
+        for(int j = 0 ; j < ulen ; j++){
+            if(eventList[i].eventName[j] != eventname[j])break;
+            check++;
+        }
+        if(check != ulen) continue;
+        return &eventList[i];
+    }
+    return NULL;
+}
+
+//This is assuming the ids in the List are sequential which they absolutely should be
+//binary searches the requested id
 EVENTS *searchEventId(EVENTS *eventList, int64_t listSize, int id, int64_t *index) {
+    if(listSize == 0)
+        return NULL;
     int64_t low = 0, high = listSize - 1;
     while (low <= high) {
         int64_t mid = low + (high - low) / 2;
@@ -21,33 +49,17 @@ EVENTS *searchEventId(EVENTS *eventList, int64_t listSize, int id, int64_t *inde
             high = mid - 1;
         }
     }
-    return NULL;
+    return NULL; 
 }
 
-EVENTS *searchEventName(EVENTS *eventList, int64_t listSize, char *eventName, int64_t *index) { // very slow
-    int ulen = strlen(eventName);
-    for(int64_t i = 0 ; i < listSize ; i++){
-        int check = 0;
-        if(ulen != strlen(eventList[i].name))continue;
-        for(int j = 0 ; j < ulen; j++){
-            if(eventList[i].name[j] != eventName[j])break;
-            check++;
-        }
-        if(check != ulen) continue;
-        return &eventList[i];
-    }
-    return NULL;
-}
-
-int updateEventData(EVENTS eventList[], int64_t listSize){
+int updateEventData(EVENTS *eventList, int64_t listSize){
     FILE *fp = fopen(EVENTDATA, "wb");
     if(!fp)
         return -1;
-    if(fwrite(&listSize, sizeof(int64_t), 1, fp) != 1 )
+    if(fwrite(&listSize, sizeof(int64_t), 1, fp) != 1 ) 
         return -1;
     for(int i = 0 ; i < listSize ; i++){
-        eventList[i].participants = NULL;
-        if(fwrite(&eventList[i], sizeof(EVENTS), 1, fp) != 1)
+        if(fwrite(&eventList[i], sizeof(EVENTS), 1, fp) != 1) 
             return -1;
     }
     fclose(fp);
@@ -55,254 +67,208 @@ int updateEventData(EVENTS eventList[], int64_t listSize){
     return 1;
 }
 
+int64_t readTotalEvents(){
+    int64_t totalEvents = 0;
+    FILE *fp = fopen(EVENTDATA, "rb");
+    if(TotalEventAmount == 0){
+        if(!fp)
+            return 0;
+        if(fseek(fp, 0, SEEK_END) != 0)
+            goto cleanup;
+        if(ftell(fp) == 0)
+            goto cleanup;
+        if(fseek(fp, 0, SEEK_SET) != 0)
+            goto cleanup;
+        fread(&totalEvents, sizeof(int64_t), 1, fp);
+        TotalEventAmount = totalEvents;
+        goto cleanup;
+    }
+    totalEvents = TotalEventAmount;
+    goto cleanup;
+cleanup:
+    if(fp)
+        fclose(fp);
+    fp = NULL;
+    return totalEvents;
+}
+
 int loadEventData(EVENTS *eventList) {
     FILE *fp = fopen(EVENTDATA, "rb");
+    int error = 0;
     if(!fp)
         return -1;
     fseek(fp, 0, SEEK_END);
     if(ftell(fp) == 0){
-        fclose(fp);
-        return 1;
+        error = 1;
+        goto cleanup;
     }
     fseek(fp, 0, SEEK_SET);
     int64_t eventTotal = 0;
     fread(&eventTotal, sizeof(int64_t), 1, fp);
     if(eventTotal == 0){
-        fclose(fp);
-        return 1;
+        error = 1;
+        goto cleanup;
     }
-    for(int i = 0 ; i < eventTotal ; i++){
+    for(int i = 0 ; i < eventTotal ; i++)
         fread(&eventList[i], sizeof(EVENTS), 1, fp);
-    }
+    goto cleanup;
+cleanup:
     fclose(fp);
+    fp = NULL;
     return 0;
 }
 
-int64_t readTotalEvents(){
-    int64_t totalEvents = 0;
-    FILE *fp = fopen(EVENTDATA, "rb");
-    if(!fp){
-        //guarantees the existance of EVENTDATA dir file
-        FILE *makeFile = fopen(EVENTDATA, "wb");
-        fclose(makeFile);
-        fp = fopen(EVENTDATA, "rb");
-        if(!fp)
-            //or not, something wack has happened
-            return 0;
-    }
-    fseek(fp, 0, SEEK_END);
-    if(ftell(fp) == 0){
-        fclose(fp);
-        return 0;
-    }
-    fseek(fp, 0, SEEK_SET);
-    fread(&totalEvents, sizeof(int64_t), 1, fp);
-    fclose(fp);
-    if(totalEvents == 0) totalEvents = 1;
-    return totalEvents;
-}
+//this is seperate because it can be reused for other funcitons, if given other event arrays
+//like search for events with type returns multiple events:
+//or just a single event like with id serach or uname search
 
-//typedef struct events
-//    int eventID;
-//    char name[256];
-//    time_t date;//unix time, aka seconds since 1970
-//    char dateString[32]; //self described
-//    char location[256];
-//    int limit; //max students
-//    int status; //-1 canceled, 0 planned, 1 concluded
-//    int *participants;//should only be a place in active memory not part of the struct, to avoid memory disalignment
-//EVENTS;
-
-int createEvent(char *eventName, time_t date, char *location, int limit){
-    int64_t eventTotal = readTotalEvents();
-    EVENTS  *events = malloc(sizeof(EVENTS) * (eventTotal + 1));
-    switch(loadEventData(events)){
-        case 0:
-            break;
-        case -1:
-            free(events);
-            return -1;
-        default:
-            break;
+int createEvent(EVENTS *event){
+    int64_t eventTotal = readTotalEvents(),
+            index = 0;
+    EVENTS *events = NULL;
+    events = malloc(sizeof(EVENTS) * (eventTotal + 1));
+    if(!events)
+        return -1;
+    int error = loadEventData(events);
+    if(error == -1)
+        goto cleanup;
+    if(searchEventname(events, eventTotal, event->eventName, &index)){
+        error = 1;
+        goto cleanup;
     }
     EVENTS *newEvent = &events[eventTotal];
-    strncpy(newEvent->name, eventName, 255);
-    newEvent->name[255] = '\0';
-    newEvent->date = date;
-    strncpy(newEvent->location, location, 255);
-    newEvent->name[255] = '\0';
-    newEvent->limit = limit;
-    newEvent->status = 0;
-    newEvent->participants = NULL;
+    if(eventTotal == 0)
+        newEvent->eventId = 1;
+    else
+        newEvent->eventId = events[eventTotal].eventId + 1;
+    newEvent->limit = event->limit;
+    newEvent->status = event->status;
+    newEvent->date = event->date;
+    strncpy(newEvent->location, event->location, 255);
+    newEvent->location[255] = '\0';
+    strncpy(newEvent->eventName, event->eventName, 255);
+    newEvent->eventName[255] = '\0';
+    strncpy(newEvent->eventDesc, event->eventDesc, 255);
+    newEvent->eventName[255] = '\0';
     eventTotal++;
-    if(updateEventData(events, eventTotal) == -1)
-        return -1;
-    free(events);
-    return 1;
-}
-
-//typedef struct events
-//    int eventID;
-//    char name[256];
-//    time_t date;//unix time, aka seconds since 1970
-//    char dateString[32]; //self described
-//    char location[256];
-//    int limit; //max students
-//    int status; //-1 canceled, 0 planned, 1 concluded
-//EVENTS;
-
-int updateEvent(int eventId, char *eventName, time_t *date, char *location, int *limit, int *status){
-    if(eventName == NULL)
-        return 1;
-    int error = 0;
-    int64_t index = 0,
-            eventTotal = readTotalEvents();
-    EVENTS *events = malloc(sizeof(EVENTS) * (eventTotal+1));
-    if(!events){
-        return -1;
+    if(updateEventData(events, eventTotal) == -1){
+        error = -1;
+        goto cleanup;
     }
-    switch(loadEventData(events)){
-        case -1:
-            return -1;
-        case 1:
-            return 1;
-        default:
-            if(!searchEventId(events, eventTotal, eventId, &index)){
-                error = 2;
-                break;
-            }
-            if(eventName[0] != '\0'){
-                eventName[strlen(eventName)] = '\0';
-                strcpy(events[index].name, eventName);
-            }
-            updateEventData(events, eventTotal);
-            break;
-    }
+    if(TotalEventAmount != eventTotal)
+        TotalEventAmount = eventTotal;
+    goto cleanup;
+cleanup:
     free(events);
     return error;
 }
 
-int deleteEvent(int eventId){
-    int64_t index = 0;
-    int64_t eventTotal = readTotalEvents();
-    EVENTS *events = malloc(sizeof(EVENTS) * (eventTotal + 1)),
-           *check = NULL,
-            event;
+int updateEvent(int id, EVENTS *update){
+    if(!update)
+        return 1;
+    int error = 0;
+    int64_t index = 0,
+            eventTotal = readTotalEvents(),
+            data = 0;
+    EVENTS *events = NULL;
+    events = malloc(sizeof(EVENTS) * (eventTotal+1));
     if(!events)
         return -1;
-    switch(loadEventData(events)){
-        case -1:
-            return -1;
-        case 1:
-            return 1;
-        default:
-            if(!searchEventId(events, eventTotal, eventId, &index)){
-                free(events);
-                return 2;
-            }
-            if(events[index].status == 0)
-                return 2;
-            // aray[x] replaced with [x+n];
-            // because i dont know how to do it better kek;
-            if(index != eventTotal-1){
-                for(int i = index ; i < eventTotal-1 ; i++){
-                    events[i] = events[i+1];
-                }
-            }
-            updateEventData(events, eventTotal-1);
-            free(events);
-            return 0;
+    error = loadEventData(events);
+    if(error != 0)
+        goto cleanup;
+    if(!searchEventId(events, eventTotal, id, &index)){
+        error = 2;
+        goto cleanup;
     }
+//int eventId;
+//  int limit; //max students
+//  int status; //-1 canceled, 0 planned, 1 concluded
+//  time_t date;//unix time, aka seconds since 1970
+//  char location[256];
+//  char eventName[256];
+//  char eventDesc[256];
+    if(update->limit >= 0)
+        events[index].limit = update->limit;
+    if(update->status != -2)
+        events[index].status = update->status;
+    if(update->date != 0)
+        events[index].date = update->date;
+    if(update->location[0] != '\0')
+        strcpy(events[index].location, update->location);
+    if(update->eventName[0] != '\0')
+        strcpy(events[index].eventName, update->eventName);
+    if(update->eventDesc[0] != '\0')
+        strcpy(events[index].eventDesc, update->eventDesc);
+    updateEventData(events, eventTotal);
+    goto cleanup;
+cleanup:
+    free(events);
+    return error;
+}
+
+int deleteEvent(int id){
+    int64_t index = 0,
+            eventTotal = readTotalEvents();
+    EVENTS *check = NULL,
+          *events = malloc(sizeof(EVENTS) * (eventTotal + 1)),
+          event;
+    if(!events)
+        return -1;
+    int error = loadEventData(events);
+    if(error != 0)
+        goto cleanup;
+    if(!searchEventId(events, eventTotal, id, &index)){
+        error = -1;
+        goto cleanup;
+    }
+    // aray[x] replaced with [x+n];
+    // because i dont know how to do it better kek;
+    if(index < eventTotal-1)
+        for(int i = index ; i < eventTotal-1 ; i++)
+            events[i] = events[i+1];
+    eventTotal--;
+    updateEventData(events, eventTotal);
+    if(TotalEventAmount != eventTotal)
+        TotalEventAmount = eventTotal;
+    goto cleanup;
+cleanup:
+    free(events);
+    return error;
 }
 
 int getEvent(EVENTS *event, int id){
     int64_t eventTotal = readTotalEvents();
     int64_t index = 0;
-    EVENTS *events = malloc(sizeof(EVENTS) * (eventTotal + 1));
-    if(loadEventData(events) != 0){
-        free(events);
+    EVENTS *events = NULL;
+    events = malloc(sizeof(EVENTS) * (eventTotal + 1));
+    if(!events)
         return -1;
-    }
+    int error = loadEventData(events);
+    if(error != 0)
+        goto cleanup;
     event = searchEventId(events, eventTotal, id, &index);
-    if(event == NULL){
-        free(events);
-        return 1;
-    }
-    return 0;
+    goto cleanup;
+cleanup:
+    free (events);
+    return error;
 }
 
-//int getAllEvents(char **string, int eventsPerPage, int *page, char *special){
-//    int64_t eventsTotal = readTotalEvents();
-//    if(eventsTotal == 0)
-//    return -1;
-//    int maxPages = eventsTotal/eventsPerPage;
-//    if(eventsTotal%eventsPerPage != 0){
-//        maxPages++;
-//    }
-//    if (*page >= maxPages) *page = maxPages-1;
-//    if(*page<0)*page = 0;
-//    EVENTS *events = malloc(sizeof(EVENTS) * (eventsTotal + 1));
-//    if(!events)
-//    return -1;
-//    if(loadEventData(events) != 0){
-//        free(events);
-//        return -1;
-//    }
-//    if(createEventsString(string, events, eventsTotal, eventsPerPage, *page) != 0){
-//        free(events);
-//        return -1;
-//    }
-//    addPageInfo(string, *page, eventsPerPage, eventsTotal, special, "Events");
-//    free(events);
-//    return 0;
-//}
-//
-//int searchForEvent(char **string, char *search, int Event, int page){
-//    int64_t eventTotal = readTotalEvents();
-//    EVENTS *events = malloc(sizeof(EVENTS) * (eventTotal + 1));
-//    int64_t index = 0;
-//    if(eventTotal == 0)
-//    return -1;
-//    if(loadEventData(events) != 0){
-//        free(events);
-//        return 1;
-//    }
-//    EVENTS *event = searchEventName(events, eventTotal, search, &index);
-//    if(!event){
-//        //todo work with  instead
-//        free(events);
-//        return 1;
-//    }
-//    if(createEventsString(string, events, 1, 1, 0) != 0){
-//        free(events);
-//        return -1;
-//    }
-//    free(events);
-//    return 0;
-//}
-//
-//int searchForEventID(char **string, int search, int Event, int page){
-//    int64_t eventTotal = readTotalEvents();
-//    EVENTS *events = malloc(sizeof(EVENTS) * (eventTotal + 1));
-//    int64_t index = 0;
-//    if(eventTotal == 0)
-//    return -1;
-//    if(loadEventData(events) != 0){
-//        free(events);
-//        return 1;
-//    }
-//    EVENTS *event = searchEventId(events, eventTotal, search, &index);
-//    if(event == NULL){
-//        (*string) = malloc(sizeof(char) * 64);
-//        strcpy((*string), "Aluno Nao Existe\n");
-//    }else{
-//        if(createEventsString(string, event, 1, 1, 0) != 0){
-//            free(events);
-//            return -1;
-//        }
-//    }
-//    free(events);
-//    return 0;
-//}
-
-//int getAllEvents(char **string, int eventsPerPage, int *page, char *special){
+int getEventIds(int **eventIds, int id){
+    int64_t eventTotal = readTotalEvents();
+    int64_t index = 0;
+    EVENTS *events = NULL;
+    events = malloc(sizeof(EVENTS) * (eventTotal + 1));
+    *eventIds = malloc(sizeof(int) * (eventTotal + 1));
+    if(!events)
+        return -1;
+    int error = loadEventData(events);
+    if(error != 0)
+        goto cleanup;
+    for(int64_t i = 0 ; i < eventTotal ; i++)
+        (*eventIds)[i] = events[i].eventId;
+    goto cleanup;
+cleanup:
+    free (events);
+    return error;
+}
