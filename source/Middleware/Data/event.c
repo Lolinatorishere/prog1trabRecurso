@@ -162,6 +162,7 @@ int loadStudentsFromEventIndex(EVENTS *event){
     if(index)
     /*malend*/free(index);
     /*fpend*/fclose(fp);
+    fp = NULL;
     return error;
 }
 
@@ -223,6 +224,7 @@ int updateEventStudentIndexOps(FILE *fp, EVENTINDEXHELPER *index, int **studentI
         total++;
     }
     fclose(fp);
+    fp = NULL;
     /*fpstrt*/ fp = fopen(EVENTINDEX, "wb");
     if(!fp)
         return -1;
@@ -287,7 +289,9 @@ int updateEventStudentIndex(int *eventStudents, int totalStudents, int eventId, 
                 /*malend*/free(studentIds[i]);
         /*malend*/free(studentIds);
     }
+    fcloseall
     /*fpend*/fclose(fp);
+    fp = NULL
     return 0;
 }
 

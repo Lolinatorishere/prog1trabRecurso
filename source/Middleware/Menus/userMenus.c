@@ -24,11 +24,11 @@ void NewUser(int admin){
         password[i] = '\0';
     trim(password);
     switch(createUser(username,password, 0)){
-        case 1:
+        case 0:
             printf("\nuser %s criado com sucesso\n", username);
             sleep(1);
             break;
-        case 0:
+        case 1:
             printf("\n%s ja existe\n", username);
             sleep(1);
             break;
@@ -63,25 +63,23 @@ void userIndexMenu(){
 }
 
 void userDeleteMenu(USERS adminUser){
-    char extras[256] = "sel \"ID\" para remover utilizador\n";
     USERS user;
-    int page = 0;
-    int selectedID = 0;
-    char buffer[256] = {'\0'};
-    char *menuText = NULL;
-    char confirm[256] = "C E R T E Z A";
-    char toPrint[512] = {'\0'};
-    int str_cmp = 0;
+    int page = 0,
+        selectedID = 0,
+        str_cmp = 0;
+    char confirm[256] = "C E R T E Z A",
+         extras[256] = "sel \"ID\" para remover utilizador\n",
+         *menuText = NULL,
+         toPrint[512] = {'\0'},
+         buffer[256] = {'\0'};
     while(buffer[0] != '0'){
         getAllUsers(&menuText, 5, &page, extras);
         advancedPrint(menuText, 1, 1, 1);
         fgets(buffer, 256, stdin);
-        if(buffer[0] == '+'){
+        if(buffer[0] == '+')
             page++;
-        }
-        if(buffer[0] == '-'){
+        if(buffer[0] == '-')
             page--;
-        }
         if(buffer[0] == 's' && buffer[1] == 'e' && buffer[2] == 'l'){
             selectedID = int64FromString(buffer);
             if(selectedID == adminUser.userId){
@@ -89,35 +87,36 @@ void userDeleteMenu(USERS adminUser){
                 continue;
             }
             if(getUser(&user, selectedID) != 0){
-                free(menuText);
                 menuPrint("userNonExists", 1, 1);
                 sleep(1);
-                return;
+                goto cleanup;
             }
             sprintf(toPrint, "Tem A certeza que quer apagar\nUtilizador:\"%s\"\nTipo:%i\n ", user.userName, user.type);
             advancedPrint(toPrint, 1, 1, 0);
             printf("escreve: \"C E R T E Z A\", para confirmar");
             fgets(buffer, 256, stdin);
             for(int i = 0 ; i < strlen(buffer); i++){
-                if(buffer[i] != confirm[i]) break;
+                if(buffer[i] != confirm[i])
+                    break;
                 str_cmp++;
             }
-            if(str_cmp != strlen(confirm))continue;
+            if(str_cmp != strlen(confirm))
+                continue;
             if(deleteUser(selectedID) != 0){
-                free(menuText);
                 menuPrint("Error", 4, 4);
                 sleep(1);
-                return;
+                goto cleanup;
             }
         }
     }
+cleanup:
     free(menuText);
     return;
 }
 
 void usernameSearch(){
-    char search[256] = {'\0'};
-    char *menuText = NULL;
+    char search[256] = {'\0'},
+         *menuText = NULL;
     int64_t input = 0;
     int page = 0;
     while(1){
@@ -125,23 +124,26 @@ void usernameSearch(){
         printf("username:");
         fgets(search,256, stdin);
         search[strlen(search)-1] = '\0';
+        trim(search);
         switch(searchForUsername(&menuText, search, 5, page)){
-        case 0:
-            advancedPrint(menuText, 1, 1, 1);
-        break;
-        case -1:
-            free(menuText);
-            return;
-        default:
-            menuPrint("userNonExists", 1, 1);
-            break;
+            case 0:
+                advancedPrint(menuText, 1, 1, 1);
+                break;
+            case -1:
+                goto cleanup;
+            default:
+                menuPrint("userNonExists", 1, 1);
+                break;
         }
         advancedPrint(menuText, 1, 1, 1);
-        free(menuText);
         fgets(search,256, stdin);
         input = int64FromString(search);
-        if(input == 0) return;
+        if(input == 0)
+            goto cleanup;
     }
+cleanup:
+    free(menuText);
+    return;
 }
 
 void idSearch(){
@@ -236,8 +238,10 @@ int editingUser(char *buffer, char *menuText, USERS adminUser, int page){
     USERS user = setUser();
     char password[256] = {'\0'},
          username[256] = {'\0'},
-         editFunc[256] = "\n1 - username\n2 - password\n3 - type\n0 - voltar\n",
-         edit[256] = {'\0'};
+         editFunc[256] = "\n1 - username\n2 - password\n3 - type\n0 - voltar\n ",
+         edit[256] = {'\0'},
+         *copyhere = NULL,
+         *temp = NULL;
     int input = 0,
         *type = NULL,
         *alunoId = NULL,
@@ -252,9 +256,9 @@ int editingUser(char *buffer, char *menuText, USERS adminUser, int page){
     while(buffer[0] != '0'){
         type = NULL;
         searchForUserId(&menuText, selectedID, 5, page);
-        char *copyhere = malloc(sizeof(char)*strlen(menuText));
+        copyhere = malloc(sizeof(char) * (strlen(menuText) + 2));
         strcpy(copyhere, menuText);
-        char *temp = realloc(menuText, sizeof(char) * sizeof(menuText) + strlen(editFunc));
+        temp = realloc(menuText, sizeof(char) * (strlen(menuText) + strlen(editFunc) + 2));
         menuText = temp;
         strcpy(menuText, copyhere);
         free(copyhere);
@@ -262,10 +266,8 @@ int editingUser(char *buffer, char *menuText, USERS adminUser, int page){
         advancedPrint(menuText, 1, 1, 1);
         fgets(buffer, 256, stdin);
         input = int64FromString(buffer);
-        if(buffer[0] == '\n' || buffer[0] == '\0'){
-            free(menuText);
+        if(buffer[0] == '\n' || buffer[0] == '\0')
             return -1;
-        }
         if(input == 0){
             buffer[0] = '0';
             continue;
@@ -368,7 +370,7 @@ void userStudentMenu(USERS adminUser){
         if(buffer[0] == 's' && buffer[1] == 'e' && buffer[2] == 'l')
             editingUser(buffer, menuText, adminUser, page);
     }
-        free(menuText);
+    free(menuText);
     return;
 }
 

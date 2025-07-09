@@ -67,6 +67,7 @@ int updateEventData(EVENTS eventList[], int64_t listSize){
             return -1;
     }
     fclose(fp);
+    fp = NULL;
     return 1;
 }
 

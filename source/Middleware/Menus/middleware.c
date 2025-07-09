@@ -8,18 +8,21 @@
 #include"../../../headers/user.h"
 
 int addPageInfo(char **string, int page, int itemsPerPage, int itemTotal, char *specialCtrls, char *itemType){
-    char *pageExtras = malloc(sizeof(char)*256);
-    char pageInfo[256] = {'\0'};
-    char pageCur[256] = {'\0'};
-    char pagetotal[1024] = {'\0'};
-    int maxItemPrint = 0;
-    int maxPages = itemTotal/itemsPerPage;
+    char *pageExtras = malloc(sizeof(char)*256),
+         pageInfo[256] = {'\0'},
+         pageCur[256] = {'\0'},
+         *move = NULL,
+         *tmpctrls = NULL,
+         pagetotal[1024] = {'\0'};
+    int maxItemPrint = 0,
+        maxPages = itemTotal/itemsPerPage,
+        error = 0;
     strcpy(pageExtras, "\n+ pagina seguinte \n- pagina anterior\n");
     if(specialCtrls != NULL){
-        char *tmpctrls = realloc(pageExtras, sizeof(char) * (256 + strlen(specialCtrls)));
+        tmpctrls = realloc(pageExtras, sizeof(char) * (256 + strlen(specialCtrls)));
         if(!tmpctrls){
-            free(pageExtras);
-            return -1;
+            error = -1;
+            goto cleanup;
         }
         pageExtras = tmpctrls;
         strcat(pageExtras, specialCtrls);
@@ -50,22 +53,28 @@ int addPageInfo(char **string, int page, int itemsPerPage, int itemTotal, char *
     strcat(pagetotal, "\n");
     strcat(pagetotal, "\n");
     //32 for safety reasons;
-    char *move = malloc(sizeof(char)*strlen((*string)));
-    if(!move)
-        return -1;
+    move = malloc(sizeof(char) * strlen((*string)));
+    if(!move){
+        error = -1;
+        goto cleanup;
+    }
     strcpy(move, (*string));
     char *tmppage = realloc((*string), sizeof(char) * (strlen((*string)) + strlen(pagetotal) + strlen(pageExtras) + 32));
     if(!tmppage){
-        free(pageExtras);
-        return -1;
+        error = -1;
+        goto cleanup;
     }
     (*string) = tmppage ;
     strcpy((*string), pagetotal);
     strcat((*string), move);
     strcat((*string), pageExtras);
-    free(pageExtras);
-    free(move);
-    return 0;
+    goto cleanup;
+cleanup:
+    if(pageExtras)
+        free(pageExtras);
+    if(move)
+        free(move);
+    return error;
 }
 
 void returnText(char *where, int HowLong){
@@ -118,6 +127,8 @@ int firstTime(){
     FILE *create = NULL;
     firstTimeOps(in, create, &first);
     if(in)
-        fileclose(in);
+    fileclose(in);
+    in = NULL;
+    create = NULL;
     return first;
 }

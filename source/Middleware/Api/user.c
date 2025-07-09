@@ -6,6 +6,7 @@
 #include "../../../headers/stringParse.h"
 #include "../../../headers/defs.h"
 #include "../../../headers/Menus/menuMiddleware.h"
+int64_t TotalUserAmount = 0;
 
 USERS setUser(){
     USERS user;
@@ -111,45 +112,58 @@ int updateUserData(USERS *userList, int64_t listSize){
             return -1;
     }
     fclose(fp);
+    fp = NULL;
     return 1;
 }
 
 int64_t readTotalUsers(){
     int64_t totalUsers = 0;
     FILE *fp = fopen(USERDATA, "rb");
-    if(!fp)
-        return 0;
-    fseek(fp, 0, SEEK_END);
-    if(ftell(fp) == 0){
-        fclose(fp);
-        return 0;
+    if(TotalUserAmount == 0){
+        if(!fp)
+            return 0;
+        if(fseek(fp, 0, SEEK_END) != 0)
+            goto cleanup;
+        if(ftell(fp) == 0)
+            goto cleanup;
+        if(fseek(fp, 0, SEEK_SET) != 0)
+            goto cleanup;
+        fread(&totalUsers, sizeof(int64_t), 1, fp);
+        TotalUserAmount = totalUsers;
+        goto cleanup;
     }
-    fseek(fp, 0, SEEK_SET);
-    fread(&totalUsers, sizeof(int64_t), 1, fp);
-    fclose(fp);
+    totalUsers = TotalUserAmount;
+    goto cleanup;
+cleanup:
+    if(fp)
+        fclose(fp);
+    fp = NULL;
     return totalUsers;
 }
 
 int loadUserData(USERS *userList) {
     FILE *fp = fopen(USERDATA, "rb");
+    int error = 0;
     if(!fp)
         return -1;
     fseek(fp, 0, SEEK_END);
     if(ftell(fp) == 0){
-        fclose(fp);
-        return 1;
+        error = 1;
+        goto cleanup;
     }
     fseek(fp, 0, SEEK_SET);
     int64_t userTotal = 0;
     fread(&userTotal, sizeof(int64_t), 1, fp);
     if(userTotal == 0){
-        fclose(fp);
-        return 1;
+        error = 1;
+        goto cleanup;
     }
-    for(int i = 0 ; i < userTotal ; i++){
+    for(int i = 0 ; i < userTotal ; i++)
         fread(&userList[i], sizeof(USERS), 1, fp);
-    }
+    goto cleanup;
+cleanup:
     fclose(fp);
+    fp = NULL;
     return 0;
 }
 
@@ -247,7 +261,8 @@ int createUserString(char **string, USERS *users, int userTotal, int usersPerPag
 int createUser(char *username, char *password, int type){
     int64_t userTotal = readTotalUsers(),
             index = 0;
-    USERS *users = malloc(sizeof(USERS) * (userTotal + 1));
+    USERS *users = NULL;
+    users = malloc(sizeof(USERS) * (userTotal + 1));
     if(!users)
         return -1;
     int error = loadUserData(users);
@@ -272,6 +287,9 @@ int createUser(char *username, char *password, int type){
         error = -1;
         goto cleanup;
     }
+    if(TotalUserAmount != userTotal)
+        TotalUserAmount = userTotal;
+    goto cleanup;
 cleanup:
     free(users);
     return error;
@@ -284,7 +302,8 @@ int updateUser(int id, char *username, char *password, int *type, int *studentId
     int64_t index = 0,
             userTotal = readTotalUsers(),
             data = 0;
-    USERS *users = malloc(sizeof(USERS) * (userTotal+1));
+    USERS *users = NULL;
+    users = malloc(sizeof(USERS) * (userTotal+1));
     if(!users)
         return -1;
     error = loadUserData(users);
@@ -515,8 +534,9 @@ cleanup:
 int getUser(USERS *user, int id){
     int64_t userTotal = readTotalUsers();
     int64_t index = 0;
-    USERS *temp,
-          *users = malloc(sizeof(USERS) * (userTotal + 1));
+    USERS *temp = NULL,
+          *users = NULL;
+    users = malloc(sizeof(USERS) * (userTotal + 1));
     if(!users)
         return -1;
     int error = loadUserData(users);
