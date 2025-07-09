@@ -2,14 +2,20 @@
 #define EVENT_H
 #include "./structs.h"
 
+EVENTS setEvent();
+
 int64_t readTotalEvents();
 
-int createEvent(char *eventName, time_t date, char *location, int limit);
+int createEvent(EVENTS eventCreate);
 
 int updateEvent(int eventId, char *eventName, time_t *date, char *location, int *limit, int *status);
 
 int deleteEvent(int eventId);
 
 int getEvent(EVENTS *event, int id);
+
+int getAllEventIds(int **eventIds);
+
+int getAllEvents(char **string, int eventsPerPage, int *page, char *special);
 
 #endif

@@ -2,7 +2,7 @@
 
 int main(){
     //check first time boot:
-    if(startUpCheck(0) != 0)
+    if(startUp(0) != 0)
         return -1;
     //start program:
     initMenu();

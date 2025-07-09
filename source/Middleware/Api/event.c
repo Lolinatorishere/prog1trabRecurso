@@ -34,6 +34,7 @@ EVENTS *searchEventname(EVENTS *eventList, int64_t listSize, char *eventname, in
 
 //This is assuming the ids in the List are sequential which they absolutely should be
 //binary searches the requested id
+//
 EVENTS *searchEventId(EVENTS *eventList, int64_t listSize, int id, int64_t *index) {
     if(listSize == 0)
         return NULL;
@@ -49,21 +50,22 @@ EVENTS *searchEventId(EVENTS *eventList, int64_t listSize, int id, int64_t *inde
             high = mid - 1;
         }
     }
-    return NULL; 
+    return NULL;
 }
 
 int updateEventData(EVENTS *eventList, int64_t listSize){
     FILE *fp = fopen(EVENTDATA, "wb");
-    if(!fp)
+    if (!fp)
         return -1;
-    if(fwrite(&listSize, sizeof(int64_t), 1, fp) != 1 ) 
+    if (fwrite(&listSize, sizeof(int64_t), 1, fp) != 1){
+        fclose(fp);
         return -1;
-    for(int i = 0 ; i < listSize ; i++){
-        if(fwrite(&eventList[i], sizeof(EVENTS), 1, fp) != 1) 
-            return -1;
+    }
+    if (listSize > 0 && fwrite(eventList, sizeof(EVENTS), listSize, fp) != listSize){
+        fclose(fp);
+        return -1;
     }
     fclose(fp);
-    fp = NULL;
     return 1;
 }
 
@@ -118,11 +120,7 @@ cleanup:
     return 0;
 }
 
-//this is seperate because it can be reused for other funcitons, if given other event arrays
-//like search for events with type returns multiple events:
-//or just a single event like with id serach or uname search
-
-int createEvent(EVENTS *event){
+int createEvent(EVENTS event){
     int64_t eventTotal = readTotalEvents(),
             index = 0;
     EVENTS *events = NULL;
@@ -132,31 +130,22 @@ int createEvent(EVENTS *event){
     int error = loadEventData(events);
     if(error == -1)
         goto cleanup;
-    if(searchEventname(events, eventTotal, event->eventName, &index)){
-        error = 1;
-        goto cleanup;
-    }
-    EVENTS *newEvent = &events[eventTotal];
     if(eventTotal == 0)
-        newEvent->eventId = 1;
+        events[eventTotal].eventId = 1;
     else
-        newEvent->eventId = events[eventTotal].eventId + 1;
-    newEvent->limit = event->limit;
-    newEvent->status = event->status;
-    newEvent->date = event->date;
-    strncpy(newEvent->location, event->location, 255);
-    newEvent->location[255] = '\0';
-    strncpy(newEvent->eventName, event->eventName, 255);
-    newEvent->eventName[255] = '\0';
-    strncpy(newEvent->eventDesc, event->eventDesc, 255);
-    newEvent->eventName[255] = '\0';
+        events[eventTotal].eventId = events[eventTotal - 1].eventId + 1;
+    events[eventTotal].limit = event.limit;
+    events[eventTotal].status = event.status;
+    events[eventTotal].date = event.date;
+    strncpy(events[eventTotal].location, event.location, 255);
+    strncpy(events[eventTotal].eventName, event.eventName, 255);
+    strncpy(events[eventTotal].eventDesc, event.eventDesc, 255);
     eventTotal++;
     if(updateEventData(events, eventTotal) == -1){
         error = -1;
         goto cleanup;
     }
-    if(TotalEventAmount != eventTotal)
-        TotalEventAmount = eventTotal;
+    TotalEventAmount = eventTotal;
     goto cleanup;
 cleanup:
     free(events);
@@ -254,7 +243,7 @@ cleanup:
     return error;
 }
 
-int getEventIds(int **eventIds, int id){
+int getAllEventIds(int **eventIds){
     int64_t eventTotal = readTotalEvents();
     int64_t index = 0;
     EVENTS *events = NULL;
@@ -272,3 +261,4 @@ cleanup:
     free (events);
     return error;
 }
+

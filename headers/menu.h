@@ -2,7 +2,7 @@
 #define MENU_H
 #include "./structs.h"
 
-int startUpCheck(int recursion);
+int startUp(int recursion);
 
 void initMenu();
 

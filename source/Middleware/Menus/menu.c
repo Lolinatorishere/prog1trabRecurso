@@ -10,16 +10,20 @@
 #include "../../../headers/defs.h"
 #include "../../../headers/screenPrint.h"
 #include "../../../headers/stringParse.h"
-#include "../../../headers/Menus/menuMiddleware.h"
 #include "../../../headers/user.h"
+#include "../../../headers/event.h"
+#include "../../../headers/Menus/menuMiddleware.h"
+#include "../../../headers/Data/dataMiddleware.h"
 
 //copy paste menus code legibility.
 //may fk with compiler errors
 #include "./Admin/userMenus.c"
+#include "./Admin/eventMenus.c"
 
 struct stat st = {0};
+STUDENTQUEUE *queues = NULL;
 
-int startUpCheck(int recursion){
+int startUp(int recursion){
     char buffer[256] = {'\0'};
     bool pwderr = false, blink = false;
     switch(firstTime()){
@@ -58,12 +62,13 @@ int startUpCheck(int recursion){
                 mkdir(DATADIR, 0755);
             if(stat(EVENTSUBDIR, &st) == -1)
                 mkdir(EVENTSUBDIR, 0755);
-            if(startUpCheck(1) == 0)
+            if(startUp(1) == 0)
                 return 0;
             printf("An Error Occured, couldnt create USERDATA file\n");
             sleep(1);
             return -1;
         default:
+            loadEventStudents(&queues);
             return 0;
     }
 }
@@ -123,10 +128,8 @@ void loggedInAdmin(USERS *user){
                 userAdmin((*user));
                 continue;
             case 2:
-                //administartion of cursos
-                continue;
-            case 3:
-                //administartion of candidaturas
+                //administartion of events
+                eventAdmin();
                 continue;
             case 0:
                 printf("Logout de %s, Adeus\n", user->userName);
@@ -195,7 +198,6 @@ void loginMenu(){
                 NewUser(0);
                 break;
             case 0:
-                returnText("Menu Inicial", 3);
                 return;
             default:
                 syscls;
@@ -223,4 +225,6 @@ void initMenu(){
             break;
         }
     }
+    if(queues)
+        free(queues);
 }

@@ -2,10 +2,14 @@
 #define DATAMIDDLEWARE_H
 #include "../structs.h"
 
-int associateStudentUser(int userId, int alunoId);
+STUDENTQUEUE *getEventQueue(STUDENTQUEUE *queues, int eventId);
 
-int DissasociateStudentUser(int userId, int alunoId);
+int loadEventStudents(STUDENTQUEUE **queues);
 
-int loadEventStudentData(EVENTS *eventList);
+time_t convertToTimestamp(int day, int month, int year);
+
+void convertFromTimestamp(time_t timestamp, int* day, int* month, int* year);
+
+time_t notificationTimestamp(time_t timestamp);
 
 #endif

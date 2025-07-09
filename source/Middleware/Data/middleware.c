@@ -9,14 +9,14 @@
 //events
 #include "./studentll.c"
 
-int doesEventExist(STUDENTQUEUE *queues, int eventId) {
+STUDENTQUEUE *getEventQueue(STUDENTQUEUE *queues, int eventId){
     int64_t totalQueues = readTotalEvents();
     if(!queues || totalQueues <= 0)
         return 0;
     for(int64_t i = 0; i < totalQueues; i++) 
         if(queues[i].eventId == eventId)
-            return 1;
-    return 0;
+            return &queues[i];
+    return NULL;
 }
 
 STUDENTQUEUE *createAllQueues(){
@@ -35,12 +35,16 @@ STUDENTQUEUE *createAllQueues(){
     return queues;
 }
 
-int loadEventStudents(STUDENTQUEUE *eventStudents, int *eventIds, STUDENTQUEUE **queues){
+
+int loadEventStudents(STUDENTQUEUE **queues){
     int64_t totalEventStudents = 0,
             totalEvents = readTotalEvents();
     char dir[512] = {'\0'},
          dirId[64] = {'\0'};
-    int *studentIds = NULL;
+    int *studentIds = NULL,
+        *eventIds = NULL;
+    (*queues) = malloc(sizeof(STUDENTQUEUE)* (totalEvents + 1));
+    getAllEventIds(&eventIds);
     FILE *fp = NULL;
     for(int64_t i = 0 ; i < totalEvents ; i++){
         (*queues)[i].eventId = eventIds[i];
@@ -76,9 +80,35 @@ int loadEventStudents(STUDENTQUEUE *eventStudents, int *eventIds, STUDENTQUEUE *
     }
     if(studentIds)
         free(studentIds);
+    if(eventIds)
+        free(eventIds);
     studentIds = NULL;
     if(fp)
         fclose(fp);
     fp = NULL;
     return 0;
+}
+
+time_t convertToTimestamp(int day, int month, int year){
+    struct tm timestruct = {0};
+    timestruct.tm_mday = day;
+    timestruct.tm_mon = month - 1;
+    timestruct.tm_year = year - 1900;
+    return mktime(&timestruct);
+}
+
+void convertFromTimestamp(time_t timestamp, int* day, int* month, int* year) {
+    struct tm* timestruct = localtime(&timestamp);
+    *day = timestruct->tm_mday;
+    *month = timestruct->tm_mon + 1;  // tm_mon is 0-based
+    *year = timestruct->tm_year + 1900;  // tm_year is years since 1900
+}
+
+time_t notificationTimestamp(time_t timestamp){
+    int day = 0,
+        month = 0,
+        year = 0;
+    convertFromTimestamp(timestamp, &day, &month, &year);
+    day += 7;
+    return convertToTimestamp(day, month, year);
 }
