@@ -12,4 +12,10 @@ if [ $? -ne 0 ]; then
     printf "Errors detected during compilation.\nCheck compiler_errors.cmp for details.\n\n"
     echo "Errors: $(grep -i "error:" compiler_errors.cmp | wc -l)"
     echo "Warnings: $(grep -i "warning:" compiler_errors.cmp | wc -l)"
+else
+    warnings=$(grep -i "warning:" compiler_errors.cmp | wc -l)
+    if [ "$warnings" -gt 0 ]; then
+        printf "Compilation succeeded with warnings.\nCheck compiler_errors.cmp\n\n"
+        echo "Warnings: $warnings"
+    fi
 fi

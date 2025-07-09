@@ -9,7 +9,7 @@ int64_t readTotalUsers();
 
 int createUser(char *username, char *password, int type);
 
-int updateUser(int id, char *username, char *password, int *type, int *studentId);
+int updateUser(int id, char *username, char *password, int type, int studentId);
 
 int deleteUser(int userId);
 

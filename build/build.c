@@ -4,7 +4,7 @@
 
 int main(){
     int64_t size = 0;
-    FILE *fp = fopen("./build/commands.txt", "r");
+    /*nuled*/FILE *fp = fopen("./build/commands.txt", "r");
     if(fp == NULL)
         return 1;
     fseek(fp,0,SEEK_END);
@@ -20,6 +20,7 @@ int main(){
     system(commands);
     free(commands);
     fclose(fp);
+    fp = NULL;
 }
 
 

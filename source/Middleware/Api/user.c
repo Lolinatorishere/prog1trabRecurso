@@ -167,14 +167,6 @@ cleanup:
     return 0;
 }
 
-//deprecated
-//causes malloc prev vs next courruption errors more frequently for some god forsaken reason
-void freeUserData(USERS **userList) {
-    if(!userList)
-        return;
-    free(*userList);
-}
-
 //this is seperate because it can be reused for other funcitons, if given other user arrays
 //like search for users with type returns multiple users:
 //or just a single user like with id serach or uname search
@@ -295,8 +287,8 @@ cleanup:
     return error;
 }
 
-int updateUser(int id, char *username, char *password, int *type, int *studentId){
-    if(username[0] == '\0' && password[0] == '\0' && type == NULL && studentId == NULL)
+int updateUser(int id, char *username, char *password, int type, int studentId){
+    if(username[0] == '\0' && password[0] == '\0' && type == -1 && studentId == -1)
         return 1;
     int error = 0;
     int64_t index = 0,
@@ -325,10 +317,10 @@ int updateUser(int id, char *username, char *password, int *type, int *studentId
         password[strlen(password)] = '\0';
         strcpy(users[index].password, password);
     }
-    if(type != NULL)
-        users[index].type = *type;
-    if(studentId != NULL)
-        users[index].studentId = *studentId;
+    if(type != -1)
+        users[index].type = type;
+    if(studentId != -1)
+        users[index].studentId = studentId;
     updateUserData(users, userTotal);
     goto cleanup;
 cleanup:
@@ -356,7 +348,10 @@ int deleteUser(int id){
     if(index < userTotal-1)
         for(int i = index ; i < userTotal-1 ; i++)
             users[i] = users[i+1];
-    updateUserData(users, userTotal-1);
+    userTotal--;
+    updateUserData(users, userTotal);
+    if(TotalUserAmount != userTotal)
+        TotalUserAmount = userTotal;
     goto cleanup;
 cleanup:
     free(users);

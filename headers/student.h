@@ -4,19 +4,14 @@
 
 int64_t readTotalStudents();
 
-int createStudent(char *Student);
+int createStudent(char *studentName);
 
-int readStudent(STUDENTS *Student, int id);
+int getStudent(STUDENTS *student, int id);
 
-int updateStudent(int id, char *studentName, int *studentId);
+//int getStudents(STUDENTS *student, int id);
 
-int deleteStudent(int Student);
+int updateStudent(int id, char *studentName, int userId);
 
-int getAllStudents(char **string, int Students, int *page, char *special);
-
-int searchForStudent(char **string, char *search, int Student, int page);
-
-int searchForStudentID(char **string, int search, int Student);
-
+int deleteStudent(int studentId);
 
 #endif

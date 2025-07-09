@@ -14,7 +14,7 @@
 
 //int updateEventStudentIndex(int *eventStudents, int totalStudents, int eventId, int new);
 
-int loadStudentsFromEventIndex(EVENTS *event);
+//int loadStudentsFromEventIndex(EVENTS *event);
 
 //int loadEventData(EVENTS *eventList) ;
 

@@ -15,27 +15,21 @@ typedef struct users{
 typedef struct students{
     int studentId;
     int userId;
-    char name[256];
+    char studentName[256];
 }STUDENTS;
 
-typedef struct eventindexhelper{
-    int eventId;
-    int howManyStudents;
-    int64_t offset;
-}EVENTINDEXHELPER;
+typedef struct studentlist{
+    int studentId;
+    bool participou;
+    struct studentlist *next;
+    struct studentlist *prev;
+}STUDENTLIST;
 
-//typedef struct studentlist{
-//    int studentId;
-//    bool participou;
-//    struct studentlist *next;
-//    struct studentlist *prev;
-//}STUDENTLIST;
-//
-//typedef struct studentQueue{
-//    int total;
-//    STUDENTLIST *head;
-//    STUDENTLIST *tail;
-//}STUDENTQUEUE;
+typedef struct studentQueue{
+    int total;
+    STUDENTLIST *head;
+    STUDENTLIST *tail;
+}STUDENTQUEUE;
 
 //ID ´unico, nome do evento, data, local, n´umero m´aximo de participantes, descricao e estado (ativo, cancelado, concluido).
 typedef struct events{
@@ -46,7 +40,7 @@ typedef struct events{
     char location[256];
     int limit; //max students
     int status; //-1 canceled, 0 planned, 1 concluded
-    int *participants;//should only be a place in active memory not part of the struct, to avoid memory disalignment
+    STUDENTQUEUE *participants;//should only be a place in active memory not part of the struct, to avoid memory disalignment
 }EVENTS;
 
 typedef struct notif{

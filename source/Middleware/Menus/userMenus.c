@@ -1,4 +1,6 @@
 
+#include "../../../headers/defs.h"
+
 void NewUser(int admin){
     char username[256] = {'\0'};
     char password[256] = {'\0'};
@@ -243,8 +245,8 @@ int editingUser(char *buffer, char *menuText, USERS adminUser, int page){
          *copyhere = NULL,
          *temp = NULL;
     int input = 0,
-        *type = NULL,
-        *alunoId = NULL,
+        type = -1,
+        alunoId = -1,
         selectedID = int64FromString(buffer);
     if(getUser(&user, selectedID) < 0)
         return -1;
@@ -254,7 +256,7 @@ int editingUser(char *buffer, char *menuText, USERS adminUser, int page){
         return -1;
     }
     while(buffer[0] != '0'){
-        type = NULL;
+        type = -1;
         searchForUserId(&menuText, selectedID, 5, page);
         copyhere = malloc(sizeof(char) * (strlen(menuText) + 2));
         strcpy(copyhere, menuText);
@@ -296,7 +298,7 @@ int editingUser(char *buffer, char *menuText, USERS adminUser, int page){
             }
             printf("\ntipo:");
             fgets(buffer, 256, stdin);
-            *type = int64FromString(buffer);
+            type = int64FromString(buffer);
         }
         //if(input == 4){
         //    if(adminUser.alunoId == selectedID){

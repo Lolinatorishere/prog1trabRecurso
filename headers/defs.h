@@ -49,4 +49,8 @@
     #ifndef fileclose
         #define fileclose fclose
     #endif
+    #ifndef freereplace
+        #define freereplace
+        #define free(p) do { if(p) free(p); (p) = NULL; } while(0)
+    #endif
 #endif
