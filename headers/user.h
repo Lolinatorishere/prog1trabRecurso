@@ -7,13 +7,13 @@ USERS setUser();
 
 int64_t readTotalUsers();
 
-int createUser(char *username, char *password, int type);
+int createUser(USERS *userCreate, int type);
 
-int updateUser(int id, char *username, char *password, int type, int studentId);
+int updateUser(int id, USERS *update);
 
 int deleteUser(int userId);
 
-bool userValidate(char *username,char *password, USERS *user);
+bool userValidate(char *username, char *password, USERS *user);
 
 //returns a string with all users formated
 int getAllUsers(char **string, int usersPerPage, int *page, char *special);

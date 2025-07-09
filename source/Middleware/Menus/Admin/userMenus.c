@@ -1,9 +1,9 @@
 
-#include "../../../headers/defs.h"
-
 void NewUser(int admin){
+    USERS userCreate = setUser();
     char username[256] = {'\0'};
     char password[256] = {'\0'};
+    char studentName[256] = {'\0'};
     menuPrint("NewUser", 1, 1);
     printf("username:");
     fgets(username, 256, stdin);
@@ -25,7 +25,18 @@ void NewUser(int admin){
     for(int i = strlen(password)-1 ; i < 256 ; i++)
         password[i] = '\0';
     trim(password);
-    switch(createUser(username,password, 0)){
+    if(strlen(studentName) == 0 || studentName[0] == '\n'){
+        printf("students name cant be null\n");
+        sleep(1);
+        return;
+    }
+    for(int i = strlen(studentName)-1 ; i < 256 ; i++)
+        studentName[i] = '\0';
+    trim(studentName);
+    strncpy(userCreate.userName, username, 256);
+    strncpy(userCreate.password, password, 256);
+    strncpy(userCreate.studentName, password, 256);
+    switch(createUser(&userCreate, 0)){
         case 0:
             printf("\nuser %s criado com sucesso\n", username);
             sleep(1);
@@ -236,17 +247,14 @@ void userSearchMenu(){
     }
 }
 
-int editingUser(char *buffer, char *menuText, USERS adminUser, int page){
-    USERS user = setUser();
-    char password[256] = {'\0'},
-         username[256] = {'\0'},
-         editFunc[256] = "\n1 - username\n2 - password\n3 - type\n0 - voltar\n ",
+int editingUser(char *buffer, char **menuText, USERS adminUser, int page){
+    USERS user = setUser(),
+          editer = setUser();
+    char editFunc[256] = "\n1 - username\n2 - password\n3 - studentName\n4 - type\n0 - voltar\n ",
          edit[256] = {'\0'},
          *copyhere = NULL,
          *temp = NULL;
     int input = 0,
-        type = -1,
-        alunoId = -1,
         selectedID = int64FromString(buffer);
     if(getUser(&user, selectedID) < 0)
         return -1;
@@ -256,16 +264,16 @@ int editingUser(char *buffer, char *menuText, USERS adminUser, int page){
         return -1;
     }
     while(buffer[0] != '0'){
-        type = -1;
-        searchForUserId(&menuText, selectedID, 5, page);
-        copyhere = malloc(sizeof(char) * (strlen(menuText) + 2));
-        strcpy(copyhere, menuText);
-        temp = realloc(menuText, sizeof(char) * (strlen(menuText) + strlen(editFunc) + 2));
-        menuText = temp;
-        strcpy(menuText, copyhere);
+        editer = setUser();
+        searchForUserId(menuText, selectedID, 5, page);
+        copyhere = malloc(sizeof(char) * (strlen((*menuText)) + 2));
+        strcpy(copyhere, (*menuText));
+        temp = realloc((*menuText), sizeof(char) * (strlen((*menuText)) + strlen(editFunc) + 2));
+        (*menuText) = temp;
+        strcpy((*menuText), copyhere);
         free(copyhere);
-        strcat(menuText, editFunc);
-        advancedPrint(menuText, 1, 1, 1);
+        strcat((*menuText), editFunc);
+        advancedPrint((*menuText), 1, 1, 1);
         fgets(buffer, 256, stdin);
         input = int64FromString(buffer);
         if(buffer[0] == '\n' || buffer[0] == '\0')
@@ -274,23 +282,28 @@ int editingUser(char *buffer, char *menuText, USERS adminUser, int page){
             buffer[0] = '0';
             continue;
         }
-        strncpy(username, "\0", 256);
-        strncpy(password, "\0", 256);
         if(input == 1){
             printf("\nUsername:");
-            fgets(username, 256, stdin);
-            trim(username);
-            if(strlen(username) < 1)
+            fgets(editer.userName, 256, stdin);
+            trim(editer.userName);
+            if(strlen(editer.userName) < 1)
                 continue;
         }
         if(input == 2){
             printf("\npassword:");
-            fgets(password, 256, stdin);
-            trim(password);
-            if(strlen(password) < 1)
+            fgets(editer.password, 256, stdin);
+            trim(editer.password);
+            if(strlen(editer.password) < 1)
                 continue;
         }
         if(input == 3){
+            printf("\nnovo nome do Aluno:");
+            fgets(editer.studentName, 256, stdin);
+            trim(editer.password);
+            if(strlen(editer.password) < 1)
+                continue;
+        }
+        if(input == 4){
             if(adminUser.userId == selectedID){
                 printf("Administradores nao podem alterar o seu tipo");
                 sleep(1);
@@ -298,18 +311,9 @@ int editingUser(char *buffer, char *menuText, USERS adminUser, int page){
             }
             printf("\ntipo:");
             fgets(buffer, 256, stdin);
-            type = int64FromString(buffer);
+            editer.type = int64FromString(buffer);
         }
-        //if(input == 4){
-        //    if(adminUser.alunoId == selectedID){
-        //        printf("Administradores nao podem alterar o seu tipo");
-        //        continue;
-        //    }
-        //    printf("\ntipo:");
-        //    fgets(buffer, 256, stdin);
-        //    input = int64FromString(buffer);
-        //}
-        switch(updateUser(user.userId, username, password, type, alunoId)){
+        switch(updateUser(user.userId, &editer)){
             case 3:
                 printf("username Not Unique\n");
                 sleep(1);
@@ -325,9 +329,6 @@ int editingUser(char *buffer, char *menuText, USERS adminUser, int page){
             default:
                 break;
         }
-        strncpy(username, "\0", 256);
-        strncpy(password, "\0", 256);
-        strcpy(buffer, "\0");
     }
     return -1;
 }
@@ -348,9 +349,10 @@ void userAlterMenu(USERS adminUser){
         if(buffer[0] == '-')
             page--;
         if(buffer[0] == 's' && buffer[1] == 'e' && buffer[2] == 'l')
-            editingUser(buffer, menuText, adminUser, page);
+            editingUser(buffer, &menuText, adminUser, page);
     }
-    free(menuText);
+    if(menuText)
+        free(menuText);
     return;
 }
 
@@ -370,7 +372,7 @@ void userStudentMenu(USERS adminUser){
         if(buffer[0] == '-')
             page--;
         if(buffer[0] == 's' && buffer[1] == 'e' && buffer[2] == 'l')
-            editingUser(buffer, menuText, adminUser, page);
+            editingUser(buffer, &menuText, adminUser, page);
     }
     free(menuText);
     return;
@@ -403,9 +405,6 @@ void userAdmin(USERS user){
                 continue;
             case 5:
                 userSearchMenu();
-                continue;
-            case 6:
-                userStudentMenu(user);
                 continue;
             case 0:
                 return;

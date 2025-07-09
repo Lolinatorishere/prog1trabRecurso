@@ -12,11 +12,10 @@
 #include "../../../headers/stringParse.h"
 #include "../../../headers/Menus/menuMiddleware.h"
 #include "../../../headers/user.h"
-#include "../../../headers/student.h"
 
 //copy paste menus code legibility.
 //may fk with compiler errors
-#include "./userMenus.c"
+#include "./Admin/userMenus.c"
 
 struct stat st = {0};
 
@@ -43,8 +42,11 @@ int startUpCheck(int recursion){
                     continue;
                 }
                 trim(buffer);
-                if(createUser("admin", buffer, 100) != 1) continue;
-                advancedPrint("user Admin foi criado com sucesso ", 1, 1, 0);
+                USERS user = {-1, -1, "admin", '\0', '\0'};
+                strcpy(user.password, buffer);
+                if(createUser(&user, 100) != 0)
+                    continue;
+                advancedPrint("user \"admin\" foi criado com sucesso ", 1, 1, 0);
                 sleep(1);
                 return 0;
             }
@@ -54,6 +56,8 @@ int startUpCheck(int recursion){
                 return -1;
             if(stat(DATADIR, &st) == -1)
                 mkdir(DATADIR, 0755);
+            if(stat(EVENTSUBDIR, &st) == -1)
+                mkdir(EVENTSUBDIR, 0755);
             if(startUpCheck(1) == 0)
                 return 0;
             printf("An Error Occured, couldnt create USERDATA file\n");
@@ -62,8 +66,8 @@ int startUpCheck(int recursion){
         default:
             return 0;
     }
-
 }
+
 void login(USERS *user){
     int attempts = 0;
     char buffer[256] = {'\0'};

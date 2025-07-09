@@ -8,15 +8,15 @@
 #include "../../../headers/Menus/menuMiddleware.h"
 int64_t TotalUserAmount = 0;
 
+//    int userid;
+//    int type;
+//    char username[256];
+//    char password[256];
+//    char studentname[256];
+
+
 USERS setUser(){
-    USERS user;
-    for(int i = 0 ; i < 256 ; i++){
-        user.userName[i] = '\0';
-        user.password[i] = '\0';
-    }
-    user.studentId = -1;
-    user.type = -1;
-    user.userId = -1;
+    USERS user = {-1, -1, '\0', '\0', '\0'};
     return user;
 }
 
@@ -24,6 +24,8 @@ void copyUser(USERS *dst, USERS src){
     //doing it like this because of gdb
     //if not done instead of appearing "string" <000> repeats n times
     //it will have "string"<000> random non wiped memory
+    dst[0].userId = src.userId;
+    dst[0].type = src.type;
     for(int i = 0 ; i < strlen(src.userName) ; i++){
         dst[0].userName[i] = src.userName[i];
     }
@@ -36,9 +38,12 @@ void copyUser(USERS *dst, USERS src){
     for(int i = strlen(src.password) ; i < 256 ; i++){
         dst[0].password[i] = '\0';
     }
-    dst[0].type = src.type;
-    dst[0].studentId = src.studentId;
-    dst[0].userId = src.userId;
+    for(int i = 0 ; i < strlen(src.studentName) ; i++){
+        dst[0].studentName[i] = src.studentName[i];
+    }
+    for(int i = strlen(src.studentName) ; i < 256 ; i++){
+        dst[0].studentName[i] = '\0';
+    }
 }
 
 USERS *searchUsername(USERS *userList, int64_t listSize, char *username, int64_t *index) { // very slow
@@ -89,16 +94,6 @@ USERS *searchUserId(USERS *userList, int64_t listSize, int id, int64_t *index) {
         }
     }
     return NULL; 
-}
-
-USERS *searchUserStudentId(USERS *userList, int64_t listSize, int *studentId, int64_t *index) { // very slow
-    if(listSize == 0)
-        return NULL;
-    for(int64_t i = 0 ; i < listSize ; i++){
-        if(userList[i].studentId != *studentId)continue;
-        return &userList[i];
-    }
-    return NULL;
 }
 
 int updateUserData(USERS *userList, int64_t listSize){
@@ -186,7 +181,7 @@ int createUserString(char **string, USERS *users, int userTotal, int usersPerPag
         *string = malloc(sizeof(char) * (usersPerPage * (700)));
     } else {
         char *temp = realloc(*string, sizeof(char) * (usersPerPage * (700)));
-        *string = temp;
+        (*string) = temp;
     }
     int index = 0;
     char buffer[TXT_CONST];
@@ -206,9 +201,6 @@ int createUserString(char **string, USERS *users, int userTotal, int usersPerPag
         strcat((*string), buffer); index += strlen(buffer);
         strcat((*string), " | Type:"); index += ut_type;
         sprintf(buffer, "%i\n", user.type);
-        strcat((*string), buffer); index += strlen(buffer);
-        strcat((*string), " | Aluno:"); index += ut_alun;
-        sprintf(buffer, "%i\n", user.studentId);
         strcat((*string), buffer); index += strlen(buffer);
         strcat((*string), " | Name:"); index += ut_name;
         int name_len = strlen(user.userName);
@@ -250,7 +242,7 @@ int createUserString(char **string, USERS *users, int userTotal, int usersPerPag
     return 0;
 }
 
-int createUser(char *username, char *password, int type){
+int createUser(USERS *userCreate, int type){
     int64_t userTotal = readTotalUsers(),
             index = 0;
     USERS *users = NULL;
@@ -260,20 +252,25 @@ int createUser(char *username, char *password, int type){
     int error = loadUserData(users);
     if(error == -1)
         goto cleanup;
-    if(searchUsername(users, userTotal, username, &index)){
+    if(searchUsername(users, userTotal, userCreate->userName, &index)){
         error = 1;
         goto cleanup;
     }
     USERS *newUser = &users[userTotal];
-    strncpy(newUser->userName, username, 255);
+    strncpy(newUser->userName, userCreate->userName, 255);
     newUser->userName[255] = '\0';
-    strncpy(newUser->password, password, 255);
+    strncpy(newUser->password, userCreate->password, 255);
     newUser->password[255] = '\0';
-    if (userTotal == 0) newUser->type = 100;
-    else newUser->type = type;
-    if (userTotal == 0) newUser->userId = 1;
-    else newUser->userId = users[userTotal - 1].userId + 1;
-    newUser->studentId = -1;
+    if(userCreate->studentName[0] != '\0')
+        strncpy(newUser->studentName, userCreate->studentName, 255);
+    if (userTotal == 0)
+        newUser->type = 100;
+    else
+        newUser->type = type;
+    if (userTotal == 0) 
+        newUser->userId = 1;
+    else 
+        newUser->userId = users[userTotal - 1].userId + 1;
     userTotal++;
     if(updateUserData(users, userTotal) == -1){
         error = -1;
@@ -281,19 +278,20 @@ int createUser(char *username, char *password, int type){
     }
     if(TotalUserAmount != userTotal)
         TotalUserAmount = userTotal;
+    error = 0;
     goto cleanup;
 cleanup:
     free(users);
     return error;
 }
 
-int updateUser(int id, char *username, char *password, int type, int studentId){
-    if(username[0] == '\0' && password[0] == '\0' && type == -1 && studentId == -1)
+int updateUser(int id, USERS *update){
+    if(!update)
         return 1;
     int error = 0;
     int64_t index = 0,
             userTotal = readTotalUsers(),
-            data = 0;
+            ignore = 0;
     USERS *users = NULL;
     users = malloc(sizeof(USERS) * (userTotal+1));
     if(!users)
@@ -305,22 +303,19 @@ int updateUser(int id, char *username, char *password, int type, int studentId){
         error = 2;
         goto cleanup;
     }
-    if(username[0] != '\0'){
-        if(searchUsername(users, userTotal, username, &data)){
+    if(update->type != -1)
+        users[index].type = update->type;
+    if(update->password[0] != '\0')
+        strcpy(users[index].password, update->password);
+    if(update->studentName[0] != '\0')
+        strcpy(users[index].studentName, update->studentName);
+    if(update->userName[0] != '\0'){
+        if(searchUsername(users, userTotal, update->userName, &ignore)){
             error = 3;
             goto cleanup;
         }
-        username[strlen(username)] = '\0';
-        strcpy(users[index].userName, username);
+        strcpy(users[index].userName, update->userName);
     }
-    if(password[0] != '\0'){
-        password[strlen(password)] = '\0';
-        strcpy(users[index].password, password);
-    }
-    if(type != -1)
-        users[index].type = type;
-    if(studentId != -1)
-        users[index].studentId = studentId;
     updateUserData(users, userTotal);
     goto cleanup;
 cleanup:
@@ -393,7 +388,6 @@ bool userValidate(char *username,char *password, USERS *user){
         strcpy(user->password, users[i].password);
         user->type = users[i].type;
         user->userId = users[i].userId;
-        user->studentId = users[i].studentId;
         break;
     }
     if(user->type < 0)

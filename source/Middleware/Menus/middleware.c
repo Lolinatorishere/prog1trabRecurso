@@ -87,48 +87,18 @@ void returnText(char *where, int HowLong){
     return;
 }
 
-int firstTimeLogic(FILE *in, FILE *create, int *first){
-    in = fileopen(STUDENTDATA, "r");
-    if(!in){
-        create = fileopen(STUDENTDATA, "w");
-        if(!create)
-            return -1;
-        fileclose(create);
-    }
-    in = fileopen(EVENTDATA, "r");
-    if(!in){
-        create = fileopen(EVENTDATA, "w");
-        if(!create)
-            return -1;
-        fileclose(create);
-    }
-    in = fileopen(EVENTINDEX, "r");
-    if(!in){
-        create = fileopen(EVENTINDEX, "w");
-        if(!create)
-            return -1;
-        fileclose(create);
-    }
-    in = fileopen(USERDATA, "r");
-    if(!in){
-        *first = 1;
-        FILE *create = fileopen(USERDATA, "w");
-        if(!create)
-            return -1;
-        fileclose(create);
-    }
-    if(readTotalUsers() == 0)
-        *first = 1;
-}
-
 int firstTime(){
-    int first = 0;
-    FILE *in = NULL;
-    FILE *create = NULL;
-    firstTimeLogic(in, create, &first);
-    if(in)
-        fileclose(in);
-    in = NULL;
-    create = NULL;
-    return first;
+    FILE *file;
+    file = fopen(USERDATA, "a");
+    if(file == NULL)
+        return -1;
+    fclose(file);
+    // Create EVENTDATA file
+    file = fopen(EVENTDATA, "a");
+     if(file == NULL)
+        return -1;
+    fclose(file);
+    if(readTotalUsers() < 1)
+        return 1;
+    return 0;
 }

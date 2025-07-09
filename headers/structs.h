@@ -7,16 +7,10 @@
 typedef struct users{
     int userId;
     int type;
-    int studentId;
     char userName[256];
     char password[256];
-}USERS;
-
-typedef struct students{
-    int studentId;
-    int userId;
     char studentName[256];
-}STUDENTS;
+}USERS;
 
 typedef struct studentlist{
     int studentId;
