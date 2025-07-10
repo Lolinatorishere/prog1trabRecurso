@@ -107,12 +107,12 @@ void NewEventMenu(){
     }
 }
 
-void noEventSort(){
+void eventIndexSort(int orderby){
     int page = 0;
     char *menuText = NULL;
     char buffer[256] = {'\0'};
     while(buffer[0] != '0'){
-        getAllEvents(&menuText, queues, 5, &page, NULL, 0);
+        getAllEvents(&menuText, queues, 5, &page, NULL, orderby);
         advancedPrint(menuText, 1, 1, 1);
         //handle menuInput
         fgets(buffer, 256, stdin);
@@ -132,24 +132,9 @@ void eventIndexMenu(){
         menuPrint("eventIndex", 1, 1);
         fgets(buffer, 256, stdin);
         input = int64FromString(buffer);
-        switch(input){
-            case 1:
-                noEventSort();
-                continue;
-            case 2:
-                //stateEventSort();
-                continue;
-            case 3:
-                //nameEventSort();
-                continue;
-            case 4:
-                //dateEventSort();
-                continue;
-            case 0:
-                return;
-            default:
-                continue;
-        }
+        if(input == 0)
+            return;
+        eventIndexSort(input);
     }
 }
 

@@ -328,13 +328,15 @@ int getAllEvents(char **string, STUDENTQUEUE *queue, int eventsPerPage, int *pag
     if(error != 0)
         goto cleanup;
     switch(orderBy){
-        case 1://name
+        case 1: // nosort
+            break;
+        case 2://name
             qsort(events, eventTotal, sizeof(EVENTS), compareEventsByName);
             break;
-        case 2://status
+        case 3://status
             qsort(events, eventTotal, sizeof(EVENTS), compareEventsByStatus);
             break;
-        case 3://date
+        case 4://date
             qsort(events, eventTotal, sizeof(EVENTS), compareEventsByDate);
             break;
         default:
