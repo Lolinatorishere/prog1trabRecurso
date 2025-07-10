@@ -16,6 +16,18 @@ EVENTS setEvent(){
     return event;
 }
 
+
+
+void copyEvent(EVENTS *dst, EVENTS src){
+    dst->eventId = src.eventId;
+    dst->limit = src.limit;
+    dst->status = src.status;
+    dst->date = src.date;
+    strncpy(dst->location, src.location, 256);
+    strncpy(dst->eventName, src.eventName, 256);
+    strncpy(dst->eventDesc, src.eventDesc, 256);
+}
+
 EVENTS *searchEventname(EVENTS *eventList, int64_t listSize, char *eventname, int64_t *index) { // very slow
     if(listSize == 0)
         return NULL;
@@ -152,9 +164,11 @@ int createEventString(char **string, EVENTS *events, STUDENTQUEUE *queue, int ev
             break;
         EVENTS event = events[i];
         STUDENTQUEUE *eventQueue = getEventQueue(queue, event.eventId);
-        int total = eventQueue->total;
+        int total = 0;
         if(!eventQueue)
             total = 0;
+        else
+            total = eventQueue->total;
         int day = 0,
             month = 0,
             year = 0;
@@ -313,7 +327,15 @@ cleanup:
 
 int getAllEvents(char **string, STUDENTQUEUE *queue, int eventsPerPage, int *page, char *special, int orderBy){
     int64_t eventTotal = readTotalEvents();
-    EVENTS *events = malloc(sizeof(EVENTS) * (eventTotal + 1));
+    EVENTS *events = malloc(sizeof(EVENTS) * (eventTotal + 1)),
+           *eventsorted = NULL;
+    STUDENTQUEUE *copy = malloc(sizeof(STUDENTQUEUE) * (eventTotal+1));
+    for(int64_t i = 0 ; i < eventTotal ; i++){
+        copy[i].eventId = queue[i].eventId;
+        copy[i].total = queue[i].total;
+        copy[i].head = queue[i].head;
+        copy[i].tail = queue[i].tail;
+    }
     int maxPages = eventTotal/eventsPerPage,
         error = 0;
     if(!events)
@@ -339,6 +361,15 @@ int getAllEvents(char **string, STUDENTQUEUE *queue, int eventsPerPage, int *pag
         case 4://date
             qsort(events, eventTotal, sizeof(EVENTS), compareEventsByDate);
             break;
+        case 5://total;
+            qsort(copy, eventTotal, sizeof(EVENTS), compareStudentQueuesByTotal);
+            eventsorted = malloc(sizeof(EVENTS) * (eventTotal + 1));
+            for(int64_t i = 0 ; i < eventTotal ; i++)
+                copyEvent(&eventsorted[i], events[copy[i].eventId]);
+            for(int64_t i = 0 ; i < eventTotal ; i++)
+                copyEvent(&events[i], eventsorted[i]);
+            free(eventsorted);
+            break;
         default:
             break;
     }
@@ -348,6 +379,7 @@ int getAllEvents(char **string, STUDENTQUEUE *queue, int eventsPerPage, int *pag
     addPageInfo(string, *page, eventsPerPage, eventTotal, special, "Users");
     goto cleanup;
 cleanup:
+    free(copy);
     free(events);
     return error;
     return 0;

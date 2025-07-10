@@ -8,6 +8,8 @@ int compareEventsByStatus(const void *a, const void *b);
 
 int compareEventsByDate(const void *a, const void *b);
 
+int compareStudentQueuesByTotal(const void *a, const void *b);
+
 STUDENTQUEUE *getEventQueue(STUDENTQUEUE *queues, int eventId);
 
 int loadEventStudents(STUDENTQUEUE **queues);
