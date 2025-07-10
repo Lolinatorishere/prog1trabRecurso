@@ -8,7 +8,7 @@ void NewUser(int admin){
     printf("username:");
     fgets(username, 256, stdin);
     if(strlen(username) == 0 || username[0] == '\n'){
-        printf("username cant be null\n");
+        printf("username nao pode ser null\n");
         sleep(1);
         return;
     }
@@ -18,21 +18,23 @@ void NewUser(int admin){
     printf("password:");
     fgets(password, 256, stdin);
     if(strlen(password) == 0 || password[0] == '\n'){
-        printf("password cant be null\n");
+        printf("password nao pode ser null\n");
         sleep(1);
         return;
     }
     for(int i = strlen(password)-1 ; i < 256 ; i++)
         password[i] = '\0';
     trim(password);
-    if(strlen(studentName) == 0 || studentName[0] == '\n'){
-        printf("students name cant be null\n");
+    printf("Nome Estudante:");
+    fgets(password, 256, stdin);
+    if(strlen(password) == 0 || password[0] == '\n'){
+        printf("Estudante nao pode ser null\n");
         sleep(1);
         return;
     }
-    for(int i = strlen(studentName)-1 ; i < 256 ; i++)
-        studentName[i] = '\0';
-    trim(studentName);
+    for(int i = strlen(password)-1 ; i < 256 ; i++)
+        password[i] = '\0';
+    trim(password);
     strncpy(userCreate.userName, username, 256);
     strncpy(userCreate.password, password, 256);
     strncpy(userCreate.studentName, password, 256);
@@ -266,9 +268,9 @@ int editingUser(char *buffer, char **menuText, USERS adminUser, int page){
     while(buffer[0] != '0'){
         editer = setUser();
         searchForUserId(menuText, selectedID, 5, page);
-        copyhere = malloc(sizeof(char) * (strlen((*menuText)) + 2));
+        copyhere = (char*) malloc(sizeof(char) * (strlen((*menuText)) + 2));
         strcpy(copyhere, (*menuText));
-        temp = realloc((*menuText), sizeof(char) * (strlen((*menuText)) + strlen(editFunc) + 2));
+        temp = (char*) realloc((*menuText), sizeof(char) * (strlen((*menuText)) + strlen(editFunc) + 2));
         (*menuText) = temp;
         strcpy((*menuText), copyhere);
         free(copyhere);

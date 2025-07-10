@@ -14,7 +14,7 @@ int stringReplace(char *input, char *filter, char *replace){
         return 1;
     int i = 0;
     int replaced = 0;
-    char *buffer = (char*)malloc(sizeof(char)*strlen(input));
+    char *buffer = (char*) malloc(sizeof(char)*strlen(input));
     if(strlen(input) == 0){
         strcpy(input, "\0");
         return 0;
@@ -56,22 +56,20 @@ void trim(char *str) {
 int64_t int64FromString(char *input){
     if(input == NULL)
         return -1;
-    int inlen = strlen(input);
-    int j = 0;
-    int64_t output = 0;
+    int inlen = strlen(input),
+        j = 0;
+    char seperateNums[256] = {'\0'};
+    if(inlen > 255)
+       inlen = 255;
     if(strlen(input) == 0)
-        
         return -1;
-    char *seperateNums = malloc(sizeof(char) * inlen);
     for(int i = 0 ; i < inlen ; i++){
         isasciinum(input[i]){
             seperateNums[j] = input[i];
             j++;
         }
     }
-    output = atoll(seperateNums);
-    free(seperateNums);
-    return output;
+    return atoll(seperateNums);
 }
 
 //int floatNumberInput(char *input, float *output);
@@ -85,17 +83,16 @@ double doubleFromString(char *input){
 }
 
 int centerString(int size, char *text){
-    if(size < strlen(text))
+    int textsize = strlen(text);
+    int index = 0, i = 0;
+    int margins = (size - textsize) / 2;
+    if(size < textsize)
         return -1;
     if(!text)
         return -1;
-    if(strlen(text) > TXT_CONST)
+    if(textsize > TXT_CONST)
         return -1;
-    char *buffer = malloc(sizeof(char)*TXT_CONST);
-    int index = 0, i = 0;
-    int textsize = strlen(text);
-    int unbal = (size-textsize)%2;
-    int margins = (size-textsize)/2;
+    char *buffer = calloc(TXT_CONST, sizeof(char));
     for(i = 0 ; i < margins ; i++)
         buffer[i] = ' ';
     index += i;

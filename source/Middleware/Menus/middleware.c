@@ -8,7 +8,7 @@
 #include"../../../headers/user.h"
 
 int addPageInfo(char **string, int page, int itemsPerPage, int itemTotal, char *specialCtrls, char *itemType){
-    char *pageExtras = malloc(sizeof(char)*256),
+    char *pageExtras = (char*) malloc(sizeof(char)*256),
          pageInfo[256] = {'\0'},
          pageCur[256] = {'\0'},
          *move = NULL,
@@ -19,7 +19,7 @@ int addPageInfo(char **string, int page, int itemsPerPage, int itemTotal, char *
         error = 0;
     strcpy(pageExtras, "\n+ pagina seguinte \n- pagina anterior\n");
     if(specialCtrls != NULL){
-        tmpctrls = realloc(pageExtras, sizeof(char) * (256 + strlen(specialCtrls)));
+        tmpctrls = (char*) realloc(pageExtras, sizeof(char) * (256 + strlen(specialCtrls)));
         if(!tmpctrls){
             error = -1;
             goto cleanup;
@@ -29,16 +29,15 @@ int addPageInfo(char **string, int page, int itemsPerPage, int itemTotal, char *
     }
     strcat(pageExtras, "0 sair\n");
     if(itemTotal%itemsPerPage != 0) maxPages++;
-    if((page+1) * itemsPerPage > itemTotal){
+    if((page+1) * itemsPerPage > itemTotal)
         maxItemPrint = itemTotal;
-    } else {
+    else
         maxItemPrint = itemsPerPage*(page+1);
-    }
     sprintf(pageCur,"pagina %i de %i", (page+1), maxPages);
-    sprintf(pageInfo,"%s %i a %i", itemType, (page*itemsPerPage)+1, maxItemPrint);
+    sprintf(pageInfo, "%s %i a %i", itemType, (page * itemsPerPage) + 1, maxItemPrint);
     if(strlen(pageCur) + strlen(pageInfo) < TXT_CONST){
-        centerString(TXT_CONST/2, pageCur);
-        centerString(TXT_CONST/2, pageInfo);
+        centerString(TXT_CONST / 2, pageCur);
+        centerString(TXT_CONST / 2, pageInfo);
         strcat(pagetotal, pageCur);
         pagetotal[strlen(pageCur)] = '|';
         strcat(pagetotal, pageInfo);
@@ -53,18 +52,18 @@ int addPageInfo(char **string, int page, int itemsPerPage, int itemTotal, char *
     strcat(pagetotal, "\n");
     strcat(pagetotal, "\n");
     //32 for safety reasons;
-    move = malloc(sizeof(char) * strlen((*string)));
+    move = (char*) malloc(sizeof(char) * (strlen((*string)) + 1));
     if(!move){
         error = -1;
         goto cleanup;
     }
-    strcpy(move, (*string));
-    char *tmppage = realloc((*string), sizeof(char) * (strlen((*string)) + strlen(pagetotal) + strlen(pageExtras) + 32));
+    strncpy(move, (*string), strlen((*string)));
+    char *tmppage = (char*) realloc((*string), sizeof(char) * (strlen((*string)) + strlen(pagetotal) + strlen(pageExtras) + 64));
     if(!tmppage){
         error = -1;
         goto cleanup;
     }
-    (*string) = tmppage ;
+    (*string) = tmppage;
     strcpy((*string), pagetotal);
     strcat((*string), move);
     strcat((*string), pageExtras);

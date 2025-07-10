@@ -24,7 +24,7 @@ STUDENTQUEUE *createAllQueues(){
     int64_t totalEvents = readTotalEvents();
     if(totalEvents <= 0)
         return NULL;
-    STUDENTQUEUE* queues = malloc(totalEvents * sizeof(STUDENTQUEUE));
+    STUDENTQUEUE* queues = (STUDENTQUEUE*) malloc(totalEvents * sizeof(STUDENTQUEUE));
     if(!queues)
         return NULL;
     for(int64_t i = 0 ; i < totalEvents ; i++) {
@@ -43,7 +43,7 @@ int loadEventStudents(STUDENTQUEUE **queues){
          dirId[64] = {'\0'};
     int *studentIds = NULL,
         *eventIds = NULL;
-    (*queues) = malloc(sizeof(STUDENTQUEUE)* (totalEvents + 1));
+    (*queues) = (STUDENTQUEUE*) malloc(sizeof(STUDENTQUEUE)* (totalEvents + 1));
     getAllEventIds(&eventIds);
     FILE *fp = NULL;
     for(int64_t i = 0 ; i < totalEvents ; i++){
@@ -64,7 +64,7 @@ int loadEventStudents(STUDENTQUEUE **queues){
         }
         fread(&totalEventStudents, sizeof(int64_t), 1, fp);
         (*queues)[i].total = totalEventStudents;
-        studentIds = malloc(sizeof(int) * (totalEventStudents + 1));
+        studentIds = (int*) malloc(sizeof(int) * (totalEventStudents + 1));
         if(!studentIds)
             continue;
         fread(studentIds, sizeof(int), totalEventStudents, fp);
@@ -98,7 +98,7 @@ time_t convertToTimestamp(int day, int month, int year){
 }
 
 void convertFromTimestamp(time_t timestamp, int* day, int* month, int* year) {
-    struct tm* timestruct = localtime(&timestamp);
+    struct tm *timestruct = localtime(&timestamp);
     *day = timestruct->tm_mday;
     *month = timestruct->tm_mon + 1;  // tm_mon is 0-based
     *year = timestruct->tm_year + 1900;  // tm_year is years since 1900

@@ -12,7 +12,7 @@ int main(){
     fseek(fp,0,SEEK_SET);
     if(size == 0)
         return 1;
-    char *commands = malloc(sizeof(char)*size);
+    char *commands = (char*) malloc(sizeof(char)*size);
     for(int i = 0 ; i < size ; i++){
         fseek(fp,i,SEEK_SET);
         commands[i] = fgetc(fp);

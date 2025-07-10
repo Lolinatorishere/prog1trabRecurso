@@ -135,17 +135,16 @@ cleanup:
 
 int createEventString(char **string, EVENTS *events, STUDENTQUEUE *queue, int eventTotal, int eventsPerPage, int page){
     /* should return something with this type of structure
-     * / nome:eventName 
-     * | Id: eventID
+     * / nome:eventName | Id: eventID
      * | data: date converted
      * | estado: state
-     * | total : inscritos
-     * \ limit: limit
+     * | limit: limit | total : inscritos
+     * \ desc: limit
      */
      if(*string == NULL){
-        *string = malloc(sizeof(char) * (eventsPerPage * (256 * 6)));
+        *string = (char*) malloc(sizeof(char) * (eventsPerPage * (256 * 6)));
     } else {
-        char *temp = realloc((*string), sizeof(char) * (eventsPerPage * (256 * 6)));
+        char *temp = (char*) realloc((*string), sizeof(char) * (eventsPerPage * (256 * 6)));
         (*string) = temp;
     }
     char buffer[256];
@@ -155,7 +154,8 @@ int createEventString(char **string, EVENTS *events, STUDENTQUEUE *queue, int ev
         ut_estado = strlen(" | Estado: "),
         ut_data =   strlen(" | Data: "),
         ut_total =  strlen(" | Total: "),
-        ut_limit =  strlen(" \\ Limite: ");
+        ut_limit =  strlen(" | Limite: "),
+        ut_desc =  strlen(" \\ Descricao: ");
     strcpy((*string), "\0");
     if(TXT_CONST - ut_nome <= ut_nome)
         return -1;
@@ -193,10 +193,13 @@ int createEventString(char **string, EVENTS *events, STUDENTQUEUE *queue, int ev
         }
         strcat((*string), " | Data:"); index += ut_data;
         sprintf(buffer, "%i/%i/%i\n", day, month, year); strcat((*string), buffer); index += strlen(buffer);
+        strcat((*string), " | Limite:"); index += ut_total;
+        sprintf(buffer, "%i", event.limit); strcat((*string), buffer); index += strlen(buffer);
         strcat((*string), " | Total:"); index += ut_total;
         sprintf(buffer, "%i\n", total); strcat((*string), buffer); index += strlen(buffer);
-        strcat((*string), " \\ Limite:"); index += ut_total;
-        sprintf(buffer, "%i\n", event.limit); strcat((*string), buffer); index += strlen(buffer);
+        strcat((*string), " \\ Descricao:"); index += ut_desc;
+        strcat((*string), event.eventDesc); index += strlen(event.eventDesc);
+        strcat((*string), "\n"); index += 1;
     }
     (*string)[index+1]='\0';
     return 0;
@@ -206,7 +209,7 @@ int createEvent(EVENTS event){
     int64_t eventTotal = readTotalEvents(),
             index = 0;
     EVENTS *events = NULL;
-    events = malloc(sizeof(EVENTS) * (eventTotal + 1));
+    events = (EVENTS*) malloc(sizeof(EVENTS) * (eventTotal + 1));
     if(!events)
         return -1;
     int error = loadEventData(events);
@@ -242,7 +245,7 @@ int updateEvent(int id, EVENTS *update){
             eventTotal = readTotalEvents(),
             data = 0;
     EVENTS *events = NULL;
-    events = malloc(sizeof(EVENTS) * (eventTotal+1));
+    events = (EVENTS*) malloc(sizeof(EVENTS) * (eventTotal+1));
     if(!events)
         return -1;
     error = loadEventData(events);
@@ -282,7 +285,7 @@ int deleteEvent(int id){
     int64_t index = 0,
             eventTotal = readTotalEvents();
     EVENTS *check = NULL,
-          *events = malloc(sizeof(EVENTS) * (eventTotal + 1)),
+          *events = (EVENTS*) malloc(sizeof(EVENTS) * (eventTotal + 1)),
           event;
     if(!events)
         return -1;
@@ -312,7 +315,7 @@ int getEvent(EVENTS *event, int id){
     int64_t eventTotal = readTotalEvents();
     int64_t index = 0;
     EVENTS *events = NULL;
-    events = malloc(sizeof(EVENTS) * (eventTotal + 1));
+    events = (EVENTS*) malloc(sizeof(EVENTS) * (eventTotal + 1));
     if(!events)
         return -1;
     int error = loadEventData(events);
@@ -326,16 +329,11 @@ cleanup:
 }
 
 int getAllEvents(char **string, STUDENTQUEUE *queue, int eventsPerPage, int *page, char *special, int orderBy){
-    int64_t eventTotal = readTotalEvents();
-    EVENTS *events = malloc(sizeof(EVENTS) * (eventTotal + 1)),
-           *eventsorted = NULL;
-    STUDENTQUEUE *copy = malloc(sizeof(STUDENTQUEUE) * (eventTotal+1));
-    for(int64_t i = 0 ; i < eventTotal ; i++){
-        copy[i].eventId = queue[i].eventId;
-        copy[i].total = queue[i].total;
-        copy[i].head = queue[i].head;
-        copy[i].tail = queue[i].tail;
-    }
+    int64_t eventTotal = 0;
+        eventTotal = readTotalEvents();
+    EVENTS *events = calloc(eventTotal + 1, sizeof(EVENTS)),
+           *eventsorted = calloc(eventTotal + 1, sizeof(EVENTS));
+    STUDENTQUEUE *copy = calloc(eventTotal + 1, sizeof(STUDENTQUEUE));
     int maxPages = eventTotal/eventsPerPage,
         error = 0;
     if(!events)
@@ -362,13 +360,19 @@ int getAllEvents(char **string, STUDENTQUEUE *queue, int eventsPerPage, int *pag
             qsort(events, eventTotal, sizeof(EVENTS), compareEventsByDate);
             break;
         case 5://total;
-            qsort(copy, eventTotal, sizeof(EVENTS), compareStudentQueuesByTotal);
-            eventsorted = malloc(sizeof(EVENTS) * (eventTotal + 1));
-            for(int64_t i = 0 ; i < eventTotal ; i++)
+            for(int64_t i = 0 ; i < eventTotal ; i++){
+                copy[i].eventId = queue[i].eventId;
+                copy[i].total = queue[i].total;
+                copy[i].head = queue[i].head;
+                copy[i].tail = queue[i].tail;
+            }
+            qsort(copy, eventTotal, sizeof(STUDENTQUEUE), compareStudentQueuesByTotal);
+            for(int64_t i = 0 ; i < eventTotal ; i++){
+                eventsorted[i] = setEvent();
                 copyEvent(&eventsorted[i], events[copy[i].eventId]);
+            }
             for(int64_t i = 0 ; i < eventTotal ; i++)
                 copyEvent(&events[i], eventsorted[i]);
-            free(eventsorted);
             break;
         default:
             break;
@@ -379,8 +383,9 @@ int getAllEvents(char **string, STUDENTQUEUE *queue, int eventsPerPage, int *pag
     addPageInfo(string, *page, eventsPerPage, eventTotal, special, "Users");
     goto cleanup;
 cleanup:
-    free(copy);
     free(events);
+    free(eventsorted);
+    free(copy);
     return error;
     return 0;
 }
@@ -389,8 +394,8 @@ int getAllEventIds(int **eventIds){
     int64_t eventTotal = readTotalEvents();
     int64_t index = 0;
     EVENTS *events = NULL;
-    events = malloc(sizeof(EVENTS) * (eventTotal + 1));
-    *eventIds = malloc(sizeof(int) * (eventTotal + 1));
+    events = (EVENTS *) malloc(sizeof(EVENTS) * (eventTotal + 1));
+    *eventIds = (int*) malloc(sizeof(int) * (eventTotal + 1));
     if(!events)
         return -1;
     int error = loadEventData(events);

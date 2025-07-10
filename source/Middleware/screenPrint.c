@@ -33,7 +33,8 @@ void dynamic_end_text(int text_constant, int txt_indent, int txt_margin){
 void dynamic_line_print(char *string, int text_const, int txt_indent, int txt_margin){
     //have to check for \n chars and replace with pretty much a dymanic line space
     //recieves a string that is read and then it is printed in a certain way
-    int arraysize = strlen(string);
+    int arraysize = 0;
+    arraysize = strlen(string);
     if(arraysize == 0) return;
     if(text_const == 0) text_const = 1;
     char space = ' ';
@@ -74,21 +75,21 @@ int readMenuFileLogic(FILE *fp, int64_t *filesize, char **menuText){
     if(*filesize == 0)
         return -1;
     fseek(fp, 0, SEEK_SET);
-    *menuText = malloc(sizeof(char) * *filesize + 1);
+    *menuText = (char*) malloc(sizeof(char) * (*filesize + 1));
     if(!menuText)
         return -1;
     for(int i = 0 ; i < *filesize ; i++){
         fseek(fp, i, SEEK_SET);
         (*menuText)[i] = fgetc(fp);
     }
-    (*menuText)[*filesize+1] = '\0';
+    (*menuText)[*filesize] = '\0';
     return 0;
 }
 
 int readMenuFile(char *menuSection, char **menuText){
     //128 to stop segfaults;
     int error = 0;
-    char *dir = malloc(sizeof(char) * strlen(menuSection) + strlen("./menus/") + 128); 
+    char *dir = (char*) malloc(sizeof(char) * strlen(menuSection) + strlen("./menus/") + 128); 
     int64_t filesize = 0;
     if(!dir)
         return -1;
