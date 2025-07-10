@@ -7,6 +7,7 @@
 #include "../../../headers/stringParse.h"
 #include "../../../headers/defs.h"
 #include "../../../headers/Menus/menuMiddleware.h"
+#include "../../../headers/Data/dataMiddleware.h"
 
 int64_t TotalEventAmount = 0;
 
@@ -117,6 +118,73 @@ int loadEventData(EVENTS *eventList) {
 cleanup:
     fclose(fp);
     fp = NULL;
+    return 0;
+}
+
+int createEventString(char **string, EVENTS *events, STUDENTQUEUE *queue, int eventTotal, int eventsPerPage, int page){
+    /* should return something with this type of structure
+     * / nome:eventName 
+     * | Id: eventID
+     * | data: date converted
+     * | estado: state
+     * | total : inscritos
+     * \ limit: limit
+     */
+     if(*string == NULL){
+        *string = malloc(sizeof(char) * (eventsPerPage * (256 * 6)));
+    } else {
+        char *temp = realloc((*string), sizeof(char) * (eventsPerPage * (256 * 6)));
+        (*string) = temp;
+    }
+    char buffer[256];
+    int index = 0,
+        ut_nome =   strlen(" / Nome: "),
+        ut_id =     strlen(" | Id: "),
+        ut_estado = strlen(" | Estado: "),
+        ut_data =   strlen(" | Data: "),
+        ut_total =  strlen(" | Total: "),
+        ut_limit =  strlen(" \\ Limite: ");
+    strcpy((*string), "\0");
+    if(TXT_CONST - ut_nome <= ut_nome)
+        return -1;
+    for(int i = (page * eventsPerPage) ; i < eventsPerPage + (page * eventsPerPage) ; i++){
+        if(i >= eventTotal)
+            break;
+        EVENTS event = events[i];
+        STUDENTQUEUE *eventQueue = getEventQueue(queue, event.eventId);
+        int total = eventQueue->total;
+        if(!eventQueue)
+            total = 0;
+        int day = 0,
+            month = 0,
+            year = 0;
+        convertFromTimestamp(event.date, &day, &month, &year);
+        strcat((*string), " / Nome:"); index += ut_nome;
+        strcat((*string), event.eventName); index += strlen(event.eventName);
+        strcat((*string), " | ID:"); index += ut_id;
+        sprintf(buffer, "%i\n", event.eventId); strcat((*string), buffer); index += strlen(buffer);
+        strcat((*string), " | Estado:"); index += ut_estado;
+        if(event.status == 1){
+            strncpy(buffer, "Ativo\n", 256);
+            strcat((*string), buffer);
+            index += strlen(buffer);
+        }else if(event.status == 0){
+            strncpy(buffer, "Concluido\n", 256);
+            strcat((*string), buffer);
+            index += strlen(buffer);
+        }else{
+            strncpy(buffer, "Cancelado\n", 256);
+            strcat((*string), buffer);
+            index += strlen(buffer);
+        }
+        strcat((*string), " | Data:"); index += ut_data;
+        sprintf(buffer, "%i/%i/%i\n", day, month, year); strcat((*string), buffer); index += strlen(buffer);
+        strcat((*string), " | Total:"); index += ut_total;
+        sprintf(buffer, "%i\n", total); strcat((*string), buffer); index += strlen(buffer);
+        strcat((*string), " \\ Limite:"); index += ut_total;
+        sprintf(buffer, "%i\n", event.limit); strcat((*string), buffer); index += strlen(buffer);
+    }
+    (*string)[index+1]='\0';
     return 0;
 }
 
@@ -241,6 +309,46 @@ int getEvent(EVENTS *event, int id){
 cleanup:
     free (events);
     return error;
+}
+
+int getAllEvents(char **string, STUDENTQUEUE *queue, int eventsPerPage, int *page, char *special, int orderBy){
+    int64_t eventTotal = readTotalEvents();
+    EVENTS *events = malloc(sizeof(EVENTS) * (eventTotal + 1));
+    int maxPages = eventTotal/eventsPerPage,
+        error = 0;
+    if(!events)
+        return -1;
+    if(eventTotal%eventsPerPage != 0)
+        maxPages++;
+    if (*page >= maxPages)
+        *page = maxPages-1;
+    if(*page < 0)
+        *page = 0;
+    error = loadEventData(events);
+    if(error != 0)
+        goto cleanup;
+    switch(orderBy){
+        case 1://name
+            qsort(events, eventTotal, sizeof(EVENTS), compareEventsByName);
+            break;
+        case 2://status
+            qsort(events, eventTotal, sizeof(EVENTS), compareEventsByStatus);
+            break;
+        case 3://date
+            qsort(events, eventTotal, sizeof(EVENTS), compareEventsByDate);
+            break;
+        default:
+            break;
+    }
+    error = createEventString(string, events, queue, eventTotal, eventsPerPage, *page);
+    if(error != 0)
+        goto cleanup;
+    addPageInfo(string, *page, eventsPerPage, eventTotal, special, "Users");
+    goto cleanup;
+cleanup:
+    free(events);
+    return error;
+    return 0;
 }
 
 int getAllEventIds(int **eventIds){

@@ -15,13 +15,14 @@
 #include "../../../headers/Menus/menuMiddleware.h"
 #include "../../../headers/Data/dataMiddleware.h"
 
+//global variables
+struct stat st = {0};
+STUDENTQUEUE *queues = NULL;
+
 //copy paste menus code legibility.
 //may fk with compiler errors
 #include "./Admin/userMenus.c"
 #include "./Admin/eventMenus.c"
-
-struct stat st = {0};
-STUDENTQUEUE *queues = NULL;
 
 int startUp(int recursion){
     char buffer[256] = {'\0'};

@@ -30,7 +30,7 @@ typedef struct studentQueue{
 typedef struct events{
     int eventId;
     int limit; //max students
-    int status; //-1 canceled, 0 planned, 1 concluded
+    int status; //-1 canceled, 0 concluded, 1 planed
     time_t date;//unix time, aka seconds since 1970
     char location[256];
     char eventName[256];

@@ -105,17 +105,52 @@ void NewEventMenu(){
         sleep(1);
         return;
     }
-    //int limit;
-    //max students
-    //int status; //-1 canceled, 0 planned, 1 concluded
-    //time_t date;//unix time, aka seconds since 1970
-    //char location[256];
-    //char eventName[256];
-    //char eventDesc[256];
 }
 
-void eventSearchMenu(){
+void noEventSort(){
+    int page = 0;
+    char *menuText = NULL;
+    char buffer[256] = {'\0'};
+    while(buffer[0] != '0'){
+        getAllEvents(&menuText, queues, 5, &page, NULL, 0);
+        advancedPrint(menuText, 1, 1, 1);
+        //handle menuInput
+        fgets(buffer, 256, stdin);
+        if(buffer[0] == '+')
+            page++;
+        if(buffer[0] == '-')
+            page--;
+    }
+    free(menuText);
+    return;
+}
 
+void eventIndexMenu(){
+    char buffer[256];
+    int64_t input = 0;
+    while(1){
+        menuPrint("eventIndex", 1, 1);
+        fgets(buffer, 256, stdin);
+        input = int64FromString(buffer);
+        switch(input){
+            case 1:
+                noEventSort();
+                continue;
+            case 2:
+                //stateEventSort();
+                continue;
+            case 3:
+                //nameEventSort();
+                continue;
+            case 4:
+                //dateEventSort();
+                continue;
+            case 0:
+                return;
+            default:
+                continue;
+        }
+    }
 }
 
 void eventExportMenu(){
@@ -153,7 +188,7 @@ void eventAdmin(){
                 NewEventMenu();
                 continue;
             case 2:
-                eventSearchMenu();
+                eventIndexMenu();
                 continue;
             case 3:
                 eventExportMenu();

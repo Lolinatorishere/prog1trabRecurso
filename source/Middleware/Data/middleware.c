@@ -8,6 +8,7 @@
 #include "../../../headers/event.h"
 //events
 #include "./studentll.c"
+#include "./sorts.c"
 
 STUDENTQUEUE *getEventQueue(STUDENTQUEUE *queues, int eventId){
     int64_t totalQueues = readTotalEvents();
@@ -35,7 +36,6 @@ STUDENTQUEUE *createAllQueues(){
     return queues;
 }
 
-
 int loadEventStudents(STUDENTQUEUE **queues){
     int64_t totalEventStudents = 0,
             totalEvents = readTotalEvents();
@@ -58,11 +58,11 @@ int loadEventStudents(STUDENTQUEUE **queues){
         sprintf(dirId, "%i", eventIds[i]);
         strcat(dir, dirId);
         fp = fopen(dir,"rb");
-        if(!fp)
+        if(!fp){
+            (*queues)[i].total = 0;
             continue;
+        }
         fread(&totalEventStudents, sizeof(int64_t), 1, fp);
-        if(totalEventStudents == 0)
-            continue;
         (*queues)[i].total = totalEventStudents;
         studentIds = malloc(sizeof(int) * (totalEventStudents + 1));
         if(!studentIds)

@@ -16,6 +16,6 @@ int getEvent(EVENTS *event, int id);
 
 int getAllEventIds(int **eventIds);
 
-int getAllEvents(char **string, int eventsPerPage, int *page, char *special);
+int getAllEvents(char **string, STUDENTQUEUE *queue, int eventsPerPage, int *page, char *special, int orderBy);
 
 #endif

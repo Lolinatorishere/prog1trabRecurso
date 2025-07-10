@@ -180,7 +180,7 @@ int createUserString(char **string, USERS *users, int userTotal, int usersPerPag
     if(*string == NULL){
         *string = malloc(sizeof(char) * (usersPerPage * (700)));
     } else {
-        char *temp = realloc(*string, sizeof(char) * (usersPerPage * (700)));
+        char *temp = realloc((*string), sizeof(char) * (usersPerPage * (700)));
         (*string) = temp;
     }
     int index = 0;
