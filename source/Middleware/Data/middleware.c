@@ -37,12 +37,12 @@ STUDENTQUEUE *createAllQueues(){
 }
 
 int loadEventStudents(STUDENTQUEUE **queues){
+    LISTHELPER *studentIds = NULL;
     int64_t totalEventStudents = 0,
             totalEvents = readTotalEvents();
     char dir[512] = {'\0'},
          dirId[64] = {'\0'};
-    int *studentIds = NULL,
-        *eventIds = NULL;
+    int *eventIds = NULL;
     (*queues) = (STUDENTQUEUE*) malloc(sizeof(STUDENTQUEUE)* (totalEvents + 1));
     getAllEventIds(&eventIds);
     FILE *fp = NULL;
@@ -55,7 +55,7 @@ int loadEventStudents(STUDENTQUEUE **queues){
         STUDENTLIST *head = NULL;
         strcpy(dir, EVENTSUBDIR);
         strcat(dir, "/");
-        sprintf(dirId, "%i", eventIds[i]);
+        sprintf(dirId, "alunos%i", eventIds[i]);
         strcat(dir, dirId);
         fp = fopen(dir,"rb");
         if(!fp){
@@ -64,12 +64,12 @@ int loadEventStudents(STUDENTQUEUE **queues){
         }
         fread(&totalEventStudents, sizeof(int64_t), 1, fp);
         (*queues)[i].total = totalEventStudents;
-        studentIds = (int*) malloc(sizeof(int) * (totalEventStudents + 1));
+        studentIds = (LISTHELPER*) malloc(sizeof(LISTHELPER) * (totalEventStudents + 1));
         if(!studentIds)
             continue;
         fread(studentIds, sizeof(int), totalEventStudents, fp);
         for(int64_t j = 0 ; j < totalEventStudents ; j++){
-            insertEnd(&head, studentIds[j], false);
+            insertEnd(&head, studentIds[j].studentId, studentIds[j].participou);
             if(!head)
                 continue;
             if(j == 0)

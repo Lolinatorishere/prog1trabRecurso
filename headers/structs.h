@@ -12,6 +12,11 @@ typedef struct users{
     char studentName[256];
 }USERS;
 
+typedef struct listhelper{
+    int studentId;
+    bool participou;
+}LISTHELPER;
+
 typedef struct studentlist{
     int studentId;
     bool participou;
