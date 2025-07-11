@@ -95,7 +95,7 @@ void NewEventMenu(){
             new.limit = input;
             limitdone = 0;
         }
-        new.status = 0;
+        new.status = 1;
         if(createEvent(new) != 0){
             syscls;
             printf("Houve Um problema a criar o Evento");
@@ -147,11 +147,70 @@ void eventAlterMenu(){
 }
 
 void notifyEventMenu(){
-
+    return;
 }
 
 void eventDeleteMenu(){
-
+    EVENTS event = setEvent();
+    STUDENTQUEUE *queue;
+    int page = 0,
+        selectedID = 0,
+        str_cmp = 0;
+    char confirm[256] = "C E R T E Z A",
+         extras[256] = "sel \"ID\" para remover Evento\n",
+         *menuText = NULL,
+         toPrint[1024] = {'\0'},
+         buffer[256] = {'\0'};
+    while(buffer[0] != '0'){
+        event = setEvent();
+        getNonPlanedEvents(&menuText, queues, 5, &page, extras);
+        advancedPrint(menuText, 1, 1, 1);
+        fgets(buffer, 256, stdin);
+        if(buffer[0] == '+')
+            page++;
+        if(buffer[0] == '-')
+            page--;
+        if(buffer[0] == 's' && buffer[1] == 'e' && buffer[2] == 'l'){
+            selectedID = int64FromString(buffer);
+            if(getEvent(&event, selectedID) != 0){
+                advancedPrint("Nao existe Evento ", 1, 1, 0);
+                sleep(1);
+                goto cleanup;
+            }
+            if(event.status == 1){
+                advancedPrint("Nao se pode apagar um evento Ativo\n ", 1, 1, 0);
+                sleep(1);
+                continue;
+            }
+            sprintf(toPrint, "Tem A certeza que quer apagar\nEvento:\"%s\"\nId:%i\nDescricao:%s\n", event.eventName, event.eventId, event.eventDesc);
+            advancedPrint(toPrint, 1, 1, 0);
+            printf("escreve: \"C E R T E Z A\", para confirmar");
+            fgets(buffer, 256, stdin);
+            if(str_cmp != strlen(confirm))
+                continue;
+            for(int i = 0 ; i < strlen(buffer); i++){
+                if(buffer[i] != confirm[i])
+                    break;
+                str_cmp++;
+            }
+            if(deleteEvent(selectedID) != 0){
+                menuPrint("Error", 4, 4);
+                sleep(1);
+                goto cleanup;
+            }
+            queue = getEventQueue(queues, selectedID);
+            if(queue->total > 0){
+                freeList((queue->head));
+                queue->tail = NULL;
+            }
+            refreshAllQueues(queues);
+            loadEventStudents(queues);
+        }
+    }
+    goto cleanup;
+cleanup:
+    free(menuText);
+    return;
 }
 
 void eventAdmin(){

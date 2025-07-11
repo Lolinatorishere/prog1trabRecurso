@@ -18,4 +18,6 @@ int getAllEventIds(int **eventIds);
 
 int getAllEvents(char **string, STUDENTQUEUE *queue, int eventsPerPage, int *page, char *special, int orderBy);
 
+int getNonPlanedEvents(char **string, STUDENTQUEUE *queue, int eventsPerPage, int *page, char *special);
+
 #endif

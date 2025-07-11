@@ -10,9 +10,21 @@ int compareEventsByDate(const void *a, const void *b);
 
 int compareStudentQueuesByTotal(const void *a, const void *b);
 
+int loadEventStudents(STUDENTQUEUE *queues);
+
+STUDENTQUEUE *createAllQueues();
+
 STUDENTQUEUE *getEventQueue(STUDENTQUEUE *queues, int eventId);
 
-int loadEventStudents(STUDENTQUEUE **queues);
+STUDENTLIST *searchStudentNode(STUDENTLIST *head, int studentId);
+
+void refreshAllQueues(STUDENTQUEUE *queues);
+
+void deleteStudentNode(STUDENTLIST **head, int studentId);
+
+void insertEnd(STUDENTLIST **head, int studentId, bool participou);
+
+void freeList(STUDENTLIST *head);
 
 time_t convertToTimestamp(int day, int month, int year);
 

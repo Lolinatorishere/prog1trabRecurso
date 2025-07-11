@@ -69,7 +69,8 @@ int startUp(int recursion){
             sleep(1);
             return -1;
         default:
-            loadEventStudents(&queues);
+            queues = createAllQueues();
+            loadEventStudents(queues);
             return 0;
     }
 }

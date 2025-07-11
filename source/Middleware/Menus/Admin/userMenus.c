@@ -124,6 +124,7 @@ void userDeleteMenu(USERS adminUser){
             }
         }
     }
+    goto cleanup;
 cleanup:
     free(menuText);
     return;

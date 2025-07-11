@@ -24,7 +24,7 @@ STUDENTQUEUE *createAllQueues(){
     int64_t totalEvents = readTotalEvents();
     if(totalEvents <= 0)
         return NULL;
-    STUDENTQUEUE* queues = (STUDENTQUEUE*) malloc(totalEvents * sizeof(STUDENTQUEUE));
+    STUDENTQUEUE *queues = (STUDENTQUEUE*) malloc(totalEvents * sizeof(STUDENTQUEUE));
     if(!queues)
         return NULL;
     for(int64_t i = 0 ; i < totalEvents ; i++) {
@@ -36,56 +36,78 @@ STUDENTQUEUE *createAllQueues(){
     return queues;
 }
 
-int loadEventStudents(STUDENTQUEUE **queues){
+void refreshAllQueues(STUDENTQUEUE *queues) {
+    int64_t totalEvents = readTotalEvents();
+    if (!queues || totalEvents <= 0)
+        return;
+    for (int64_t i = 0; i < totalEvents; i++) {
+        queues[i].eventId = -1;
+        queues[i].total = -1;
+        // Free existing linked list if any
+        STUDENTLIST *current = queues[i].head;
+        freeList(current);
+        queues[i].head = NULL;
+        queues[i].tail = NULL;
+    }
+}
+
+int loadEventStudents(STUDENTQUEUE *queues) {
+    if (!queues)
+        return -1;
     LISTHELPER *studentIds = NULL;
-    int64_t totalEventStudents = 0,
-            totalEvents = readTotalEvents();
-    char dir[512] = {'\0'},
-         dirId[64] = {'\0'};
+    int64_t totalEventStudents = 0;
+    int64_t totalEvents = readTotalEvents();
+    char dir[512] = {'\0'};
+    char dirId[64] = {'\0'};
     int *eventIds = NULL;
-    (*queues) = (STUDENTQUEUE*) malloc(sizeof(STUDENTQUEUE)* (totalEvents + 1));
     getAllEventIds(&eventIds);
     FILE *fp = NULL;
-    for(int64_t i = 0 ; i < totalEvents ; i++){
-        (*queues)[i].eventId = eventIds[i];
+    for (int64_t i = 0; i < totalEvents; i++) {
+        queues[i].eventId = eventIds[i];
+        STUDENTLIST *cur = queues[i].head;
+        while(cur){
+            STUDENTLIST *next = cur->next;
+            free(cur);
+            cur = next;
+        }
+        queues[i].head = NULL;
+        queues[i].tail = NULL;
         if(studentIds){
             free(studentIds);
             studentIds = NULL;
         }
         STUDENTLIST *head = NULL;
-        strcpy(dir, EVENTSUBDIR);
-        strcat(dir, "/");
-        sprintf(dirId, "alunos%i", eventIds[i]);
-        strcat(dir, dirId);
-        fp = fopen(dir,"rb");
+        snprintf(dir, sizeof(dir), "%s/%d", EVENTSUBDIR, eventIds[i]);
+        fp = fopen(dir, "rb");
         if(!fp){
-            (*queues)[i].total = 0;
+            queues[i].total = 0;
             continue;
         }
         fread(&totalEventStudents, sizeof(int64_t), 1, fp);
-        (*queues)[i].total = totalEventStudents;
-        studentIds = (LISTHELPER*) malloc(sizeof(LISTHELPER) * (totalEventStudents + 1));
-        if(!studentIds)
+        queues[i].total = totalEventStudents;
+        studentIds = (LISTHELPER *)malloc(sizeof(LISTHELPER) * (totalEventStudents + 1));
+        if(!studentIds){
+            fclose(fp);
             continue;
-        fread(studentIds, sizeof(int), totalEventStudents, fp);
-        for(int64_t j = 0 ; j < totalEventStudents ; j++){
-            insertEnd(&head, studentIds[j].studentId, studentIds[j].participou);
-            if(!head)
-                continue;
-            if(j == 0)
-                (*queues)[i].head = head;
-                (*queues)[i].tail = head;
-            (*queues)[i].tail = head;
         }
+        fread(studentIds, sizeof(int), totalEventStudents, fp);
+        for(int64_t j = 0; j < totalEventStudents; j++){
+            insertEnd(&head, studentIds[j].studentId, studentIds[j].participou);
+            if (!head)
+                continue;
+            if (j == 0) {
+                queues[i].head = head;
+                queues[i].tail = head;
+            }
+            queues[i].tail = head;
+        }
+        fclose(fp);
+        fp = NULL;
     }
     if(studentIds)
         free(studentIds);
     if(eventIds)
         free(eventIds);
-    studentIds = NULL;
-    if(fp)
-        fclose(fp);
-    fp = NULL;
     return 0;
 }
 

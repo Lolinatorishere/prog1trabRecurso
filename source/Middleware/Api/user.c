@@ -181,9 +181,9 @@ int createUserString(char **string, USERS *users, int userTotal, int usersPerPag
      * \ pwd:
     */
     if(*string == NULL){
-        *string = (char*) malloc(sizeof(char) * (usersPerPage * (700)));
+        *string =  calloc((usersPerPage * (1024)), sizeof(char));
     } else {
-        char *temp = (char*) realloc((*string), sizeof(char) * (usersPerPage * (700)));
+        char *temp = (char*) realloc((*string), sizeof(char) * (usersPerPage * (1024)));
         (*string) = temp;
     }
     int index = 0;
@@ -239,9 +239,10 @@ int createUserString(char **string, USERS *users, int userTotal, int usersPerPag
                 index++;
             }
         }
-        strcat((*string), "\n"); index++;
+        strcat((*string), "\n"); 
+        index++;
     }
-    (*string)[index+1]='\0';
+    (*string)[strlen((*string))] = '\0';
     return 0;
 }
 

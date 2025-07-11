@@ -16,8 +16,6 @@ EVENTS setEvent(){
     return event;
 }
 
-
-
 void copyEvent(EVENTS *dst, EVENTS src){
     dst->eventId = src.eventId;
     dst->limit = src.limit;
@@ -284,6 +282,8 @@ cleanup:
 int deleteEvent(int id){
     int64_t index = 0,
             eventTotal = readTotalEvents();
+    char dir[512] = {'\0'},
+         dirId[64] = {'\0'};
     EVENTS *check = NULL,
           *events = (EVENTS*) malloc(sizeof(EVENTS) * (eventTotal + 1)),
           event;
@@ -303,25 +303,34 @@ int deleteEvent(int id){
             events[i] = events[i+1];
     eventTotal--;
     updateEventData(events, eventTotal);
-    if(TotalEventAmount != eventTotal)
-        TotalEventAmount = eventTotal;
+    TotalEventAmount = eventTotal;
+    strcpy(dir, EVENTSUBDIR);
+    strcat(dir, "/");
+    sprintf(dirId, "%i", event.eventId);
+    strcat(dir, dirId);
+    remove(dir);
     goto cleanup;
 cleanup:
     free(events);
     return error;
 }
 
-int getEvent(EVENTS *event, int id){
+/*function*/int getEvent(EVENTS *event, int id){
     int64_t eventTotal = readTotalEvents();
     int64_t index = 0;
-    EVENTS *events = NULL;
+    EVENTS *events = NULL,
+           *temp = NULL;
     events = (EVENTS*) malloc(sizeof(EVENTS) * (eventTotal + 1));
     if(!events)
         return -1;
     int error = loadEventData(events);
     if(error != 0)
         goto cleanup;
-    event = searchEventId(events, eventTotal, id, &index);
+    temp = searchEventId(events, eventTotal, id, &index);
+    if(temp)
+        copyEvent(event, *temp);
+    else
+        return 1;
     goto cleanup;
 cleanup:
     free (events);
@@ -349,6 +358,7 @@ int getAllEvents(char **string, STUDENTQUEUE *queue, int eventsPerPage, int *pag
         goto cleanup;
     switch(orderBy){
         case 1: // nosort
+            qsort(events, eventTotal, sizeof(EVENTS), compareEventsByStatus);
             break;
         case 2://name
             qsort(events, eventTotal, sizeof(EVENTS), compareEventsByName);
@@ -380,7 +390,7 @@ int getAllEvents(char **string, STUDENTQUEUE *queue, int eventsPerPage, int *pag
     error = createEventString(string, events, queue, eventTotal, eventsPerPage, *page);
     if(error != 0)
         goto cleanup;
-    addPageInfo(string, *page, eventsPerPage, eventTotal, special, "Users");
+    addPageInfo(string, *page, eventsPerPage, eventTotal, special, "Eventos");
     goto cleanup;
 cleanup:
     free(events);
@@ -388,6 +398,53 @@ cleanup:
     free(copy);
     return error;
     return 0;
+}
+
+int getNonPlanedEvents(char **string, STUDENTQUEUE *queue, int eventsPerPage, int *page, char *special){
+    int64_t eventTotal = readTotalEvents();
+    EVENTS *events = calloc(eventTotal + 1, sizeof(EVENTS));
+    EVENTS *filteredEvents = calloc(eventTotal + 1, sizeof(EVENTS));
+    int error = 0;
+    int64_t filteredCount = 0;
+    int maxPages;
+    if (!events || !filteredEvents)
+        return -1;
+    error = loadEventData(events);
+    if (error != 0)
+        goto cleanup;
+    for (int64_t i = 0 ; i < eventTotal ; i++){
+        if (events[i].status == 1)
+            continue;
+        copyEvent(&filteredEvents[filteredCount], events[i]);
+        filteredCount++;
+    }
+    maxPages = filteredCount / eventsPerPage;
+    if (filteredCount % eventsPerPage != 0)
+        maxPages++;
+    if (*page >= maxPages)
+        *page = maxPages - 1;
+    if (*page < 0)
+        *page = 0;
+    if(filteredCount > 0){
+        error = createEventString(string, filteredEvents, queue, filteredCount, eventsPerPage, *page);
+        if (error != 0)
+            goto cleanup;
+        addPageInfo(string, *page, eventsPerPage, filteredCount, special, "Eventos");
+    }else{
+        if((*string)){
+            char *temp = (char*)realloc((*string), sizeof(char) * (256));
+            (*string) = temp;
+            strncpy((*string), "Nao Existe Eventos Nao ativos\n0 - sair ", 256);
+        }else{
+            (*string) = calloc(256, sizeof(char));
+            strncpy((*string), "Nao Existe Eventos Nao ativos\n0 - sair ", 256);
+        }
+    }
+    goto cleanup;
+cleanup:
+    free(events);
+    free(filteredEvents);
+    return error;
 }
 
 int getAllEventIds(int **eventIds){

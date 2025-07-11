@@ -1,5 +1,4 @@
 
-// Function to create a new node
 STUDENTLIST *createStudentNode(int studentId, bool participou){
     STUDENTLIST *newNode = malloc(sizeof(STUDENTLIST));
     if(!newNode)
@@ -26,25 +25,23 @@ void insertEnd(STUDENTLIST **head, int studentId, bool participou){
     newNode->prev = temp;
 }
 
-// Function to delete a node by studentId
 void deleteStudentNode(STUDENTLIST **head, int studentId){
     if(*head == NULL)
         return;
-    STUDENTLIST* temp = *head;
+    STUDENTLIST *temp = *head;
     while(temp != NULL && temp->studentId != studentId)
         temp = temp->next;
     if(temp == NULL)
-        return; // Node not found
-    if(temp->prev != NULL) 
+        return;
+    if(temp->prev != NULL)
         temp->prev->next = temp->next;
     else
-        *head = temp->next; // Deleting the head node
+        *head = temp->next;
     if(temp->next != NULL) 
         temp->next->prev = temp->prev;
     free(temp);
 }
 
-// Function to search for a node by studentId
 STUDENTLIST *searchStudentNode(STUDENTLIST *head, int studentId){
     STUDENTLIST *temp = head;
     while(temp != NULL){
@@ -52,19 +49,9 @@ STUDENTLIST *searchStudentNode(STUDENTLIST *head, int studentId){
             return temp;
         temp = temp->next;
     }
-    return NULL; // Node not found
+    return NULL;
 }
 
-// Function to display the list
-void displayList(STUDENTLIST *head){
-    STUDENTLIST *temp = head;
-    while(temp != NULL){
-        printf("Student ID: %d, Participou: %s\n", temp->studentId, temp->participou ? "true" : "false");
-        temp = temp->next;
-    }
-}
-
-// Function to free the entire list
 void freeList(STUDENTLIST *head){
     STUDENTLIST *temp;
     while(head != NULL){
