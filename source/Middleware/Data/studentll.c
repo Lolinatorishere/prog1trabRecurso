@@ -1,6 +1,6 @@
 
 // Function to create a new node
-STUDENTLIST *createStudentNode(int studentId, bool participou){
+STUDENTLIST *createStudentNode(int studentId, int participou){
     STUDENTLIST *newNode = malloc(sizeof(STUDENTLIST));
     if(!newNode)
         return NULL;
@@ -11,7 +11,7 @@ STUDENTLIST *createStudentNode(int studentId, bool participou){
     return newNode;
 }
 
-void insertQueue(STUDENTQUEUE *queue, int studentId, bool participou) {
+void insertQueue(STUDENTQUEUE *queue, int studentId, int participou) {
     if (!queue) {
         printf("Erro: fila inválida.\n");
         return;
@@ -40,7 +40,7 @@ void insertQueue(STUDENTQUEUE *queue, int studentId, bool participou) {
     queue->total++;
 }
 
-void insertEnd(STUDENTLIST **head, int studentId, bool participou){
+void insertEnd(STUDENTLIST **head, int studentId, int participou){
     STUDENTLIST *newNode = createStudentNode(studentId, participou);
     if(!newNode)
         return;
@@ -97,6 +97,7 @@ void freeList(STUDENTLIST *head){
     while(head != NULL){
         temp = head;
         head = head->next;
-        free(temp);
+        if(temp)
+            free(temp);
     }
 }

@@ -12,13 +12,18 @@ void exportParticipationReport(int eventId, STUDENTQUEUE queue, const char *file
     STUDENTLIST *current = queue.head;
     while (current) {
         const char *studentName = "Desconhecido";
+        char participou[64] = {'\0'};
+        if(current->participou == 1)
+            strcpy(participou, "Sim");
+        else
+            strcpy(participou,"Nao");
         getUser(&user, current->studentId);
         fprintf(
             file,
             "%-9d | %-20s | %s\n",
             current->studentId,
             user.studentName,
-            current->participou ? "Sim" : "Não"
+            participou
         );
         current = current->next;
     }
@@ -41,7 +46,12 @@ void exportEventSubscriptions(int eventId, STUDENTQUEUE queue, const char *filen
     while (curr) {
         getUser(&user, curr->studentId);
         const char *studentName = "Desconhecido";
-        fprintf(file, "%d, %s, %s\n", curr->studentId, user.studentName, curr->participou ? "Sim" : "Não");
+        char participou[64] = {'\0'};
+            if(curr->participou == 1)
+                strcpy(participou, "Sim");
+            else
+                strcpy(participou, "Nao");
+        fprintf(file, "%d, %s, %s\n", curr->studentId, user.studentName, participou);
         curr = curr->next;
     }
     fclose(file);

@@ -14,7 +14,7 @@ int compareStudentQueuesByTotal(const void *a, const void *b);
 
 int loadEventStudents(STUDENTQUEUE *queues);
 
-int saveEventStudents(STUDENTQUEUE *queue, int eventId);
+int saveAllStudents(STUDENTQUEUE *queues);
 
 STUDENTQUEUE *createAllQueues();
 
@@ -26,9 +26,9 @@ STUDENTLIST *getLast(STUDENTLIST *head);
 
 void refreshAllQueues(STUDENTQUEUE *queues);
 
-void insertEnd(STUDENTLIST **head, int studentId, bool participou);
+void insertEnd(STUDENTLIST **head, int studentId, int participou);
 
-void insertQueue(STUDENTQUEUE *queue, int studentId, bool participou);
+void insertQueue(STUDENTQUEUE *queue, int studentId, int participou);
 
 void freeList(STUDENTLIST *head);
 

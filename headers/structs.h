@@ -14,12 +14,12 @@ typedef struct users{
 
 typedef struct listhelper{
     int studentId;
-    bool participou;
+    int participou;
 }LISTHELPER;
 
 typedef struct studentlist{
     int studentId;
-    bool participou;
+    int participou;
     struct studentlist *next;
     struct studentlist *prev;
 }STUDENTLIST;

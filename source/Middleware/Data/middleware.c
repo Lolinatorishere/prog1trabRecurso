@@ -25,7 +25,7 @@ STUDENTQUEUE *createAllQueues(){
     int64_t totalEvents = readTotalEvents();
     if(totalEvents <= 0)
         return NULL;
-    STUDENTQUEUE *queues = (STUDENTQUEUE*) malloc(totalEvents * sizeof(STUDENTQUEUE));
+    STUDENTQUEUE *queues = calloc(sizeof(STUDENTQUEUE), totalEvents+1);
     if(!queues)
         return NULL;
     for(int64_t i = 0 ; i < totalEvents ; i++) {
@@ -41,18 +41,22 @@ void refreshAllQueues(STUDENTQUEUE *queues) {
     int64_t totalEvents = readTotalEvents();
     if (!queues || totalEvents <= 0)
         return;
-    for (int64_t i = 0; i < totalEvents; i++) {
-        queues[i].eventId = -1;
-        queues[i].total = -1;
+    STUDENTQUEUE *temp = (STUDENTQUEUE*) realloc(queues, sizeof(STUDENTQUEUE) * (totalEvents + 1));
+    if(!temp)
+        return;
+    for (int64_t i = 0 ; i < totalEvents ; i++) {
+        temp[i].eventId = -1;
+        temp[i].total = -1;
         // Free existing linked list if any
-        STUDENTLIST *current = queues[i].head;
+        STUDENTLIST *current = temp[i].head;
         freeList(current);
-        queues[i].head = NULL;
-        queues[i].tail = NULL;
+        temp[i].head = NULL;
+        temp[i].tail = NULL;
     }
+    queues = temp;
 }
 
-int loadEventStudents(STUDENTQUEUE *queues) {
+int loadEventStudents(STUDENTQUEUE *queues){
     if (!queues)
         return -1;
     LISTHELPER *studentIds = NULL;
@@ -112,25 +116,34 @@ int loadEventStudents(STUDENTQUEUE *queues) {
     return 0;
 }
 
-int saveEventStudents(STUDENTQUEUE *queue, int eventId){
+int saveAllStudents(STUDENTQUEUE *queues){
     char dir[512] = {'\0'};
-    snprintf(dir, sizeof(dir), "%s/%d", EVENTSUBDIR, eventId);
-    FILE *fp = fopen(dir, "wb");
-    if (!fp)
-        return -1;
-    int64_t total = queue->total;
-    fwrite(&total, sizeof(int64_t), 1, fp);
-    STUDENTLIST *curr = queue->head;
-    for (int i = 0 ; i < total && curr != NULL ; i++) {
-        LISTHELPER fileupdate;
-        memset(&fileupdate, 0, sizeof(LISTHELPER));
-        fileupdate.studentId = curr->studentId;
-        fileupdate.participou = curr->participou;
-        fwrite(&fileupdate.studentId, sizeof(fileupdate.studentId), 1, fp);
-        fwrite(&fileupdate.participou, sizeof(fileupdate.participou), 1, fp);
-        curr = curr->next;
+    int64_t eventCount = readTotalEvents();
+    EVENTS event = setEvent();
+    STUDENTQUEUE *queue = {0};
+    FILE *fp = NULL;
+    for(int i = 0 ; i < eventCount ; i++){
+        queue = &queues[i];
+        getEvent(&event, queue->eventId);
+        if(queue->total <= 0)
+            continue;
+        int64_t total = queue->total;
+        snprintf(dir, sizeof(dir), "%s/%d", EVENTSUBDIR, event.eventId);
+        fp = fopen(dir, "wb");
+        if (!fp)
+            continue;
+        if(!queue)
+            continue;
+        fwrite(&total, sizeof(int64_t), 1, fp);
+        STUDENTLIST *curr = queue->head;
+        for (int i = 0 ; i < total && curr != NULL ; i++) {
+            fwrite(&curr->studentId, sizeof(int), 1, fp);
+            fwrite(&curr->participou, sizeof(int), 1, fp);
+            curr = curr->next;
+        }
+        fclose(fp);
+        fp = NULL;
     }
-    fclose(fp);
     return 0;
 }
 

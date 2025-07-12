@@ -205,10 +205,15 @@ int editEventStudents(int eventId) {
         i = 0;
         while (current && i < queue->total) {
             getUser(&user, current->studentId);
+            char participou[64] = {'\0'};
+            if(current->participou == 1)
+                strcpy(participou, "Sim");
+            else
+                strcpy(participou,"Nao");
             sprintf(studentBuffer, "ID: %d / nome: %s / Participou: %s\n",
                     current->studentId,
                     user.studentName ? user.studentName : "N/A",  // defensive
-                    current->participou ? "Sim" : "Não");
+                    participou);
             strcat(string, studentBuffer);
             current = current->next;
             i++;
@@ -229,6 +234,13 @@ int editEventStudents(int eventId) {
                     sleep(1);
                     continue;
                 }
+                getUser(&user, studentId);
+                if(user.userId == -1){
+                    printf("\nutilizador nao existe\n");
+                    sleep(1);
+                    continue;
+                }
+
                 node = queue->head;
                 while(node){
                     if(node->studentId == studentId){
@@ -240,13 +252,10 @@ int editEventStudents(int eventId) {
                 }
                 if(node)
                     break;
-                insertEnd(&queue->head, studentId, false);
+                insertEnd(&queue->head, studentId, 0);
                 queue->tail = getLast(queue->head);
                 queue->total++;
                 printf("Estudante adicionado.\n");
-                saveEventStudents(queue, eventId);
-                refreshAllQueues(queues);
-                loadEventStudents(queues);
                 sleep(1);
                 break;
             case 2:
@@ -260,9 +269,6 @@ int editEventStudents(int eventId) {
                 } else {
                     printf("Estudante não encontrado.\n");
                 }
-                saveEventStudents(queue, eventId);
-                refreshAllQueues(queues);
-                loadEventStudents(queues);
                 sleep(1);
                 break;
             case 3:
@@ -272,7 +278,10 @@ int editEventStudents(int eventId) {
                 node = queue->head;
                 while (node) {
                     if (node->studentId == studentId) {
-                        node->participou = !node->participou;
+                        if(node->participou == 1)
+                            node->participou = 0;
+                        else
+                            node->participou = 1;
                         printf("Participação atualizada.\n");
                         break;
                     }
@@ -291,6 +300,9 @@ int editEventStudents(int eventId) {
     }
     goto cleanup;
 cleanup:
+    saveAllStudents(queues);
+    refreshAllQueues(queues);
+    loadEventStudents(queues);
     if(string)
         free(string);
     return 0;
@@ -361,7 +373,7 @@ int editingEvent(char **menuText, int page, int selectedID){
                 printf("Novo Estado\n1:planeado\n0:concluido\n2:cancelado\ninput:");
                 fgets(buffer, 256, stdin);
                 input1 = int64FromString(buffer);
-                if(input1 > 0 && input < 2)
+                if(input1 >= 0 && input < 2)
                     editer.status = input1;
                 else if(input1 == 2)
                     editer.status = -1;
@@ -480,13 +492,13 @@ void eventDeleteMenu(){
             advancedPrint(toPrint, 1, 1, 0);
             printf("escreve: \"C E R T E Z A\", para confirmar");
             fgets(buffer, 256, stdin);
-            if(str_cmp != strlen(confirm))
-                continue;
             for(int i = 0 ; i < strlen(buffer); i++){
                 if(buffer[i] != confirm[i])
                     break;
                 str_cmp++;
             }
+            if(str_cmp != strlen(confirm))
+                continue;
             if(deleteEvent(selectedID) != 0){
                 menuPrint("Error", 4, 4);
                 sleep(1);
@@ -497,6 +509,8 @@ void eventDeleteMenu(){
                 freeList((queue->head));
                 queue->tail = NULL;
             }
+            queue->total = -1;
+            saveAllStudents(queues);
             refreshAllQueues(queues);
             loadEventStudents(queues);
         }

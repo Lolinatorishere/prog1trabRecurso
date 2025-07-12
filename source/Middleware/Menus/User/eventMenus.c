@@ -43,10 +43,7 @@ void enterEvent(USERS *user) {
         printf("O evento ja atingiu o maximo de participantes.\n");
         return;
     }
-    insertQueue(queue, user->userId, false);
-    saveEventStudents(queue, eventId);
-    refreshAllQueues(queues);
-    loadEventStudents(queues);
+    insertQueue(queue, user->userId, 0);
     printf("Inscrição realizada com sucesso!\n");
     return;
 }
@@ -70,9 +67,6 @@ void leaveEvent(USERS *user){
             current = current->next;
         deleteStudentNode(&current, user->userId);
         queue->total--;
-        saveEventStudents(queue, eventId);
-        refreshAllQueues(queues);
-        loadEventStudents(queues);
         printf("Inscrição removida com sucesso.\n");
         return;
     }

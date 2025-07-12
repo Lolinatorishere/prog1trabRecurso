@@ -357,7 +357,7 @@ cleanup:
     return error;
 }
 
-bool userValidate(char *username,char *password, USERS *user){
+bool userValidate(char *username, char *password, USERS *user){
     int64_t userTotal = readTotalUsers();;
     int checks = 0,
         error = 0,
@@ -529,6 +529,7 @@ int getUser(USERS *user, int id){
     int64_t index = 0;
     USERS *temp = NULL,
           *users = NULL;
+    *user = setUser();
     users = (USERS*) malloc(sizeof(USERS) * (userTotal + 1));
     if(!users)
         return -1;
