@@ -139,7 +139,46 @@ void eventIndexMenu(){
 }
 
 void eventExportMenu(){
-
+    char buffer[256] = {'\0'},
+         dir[512] = {'\0'},
+         buffer2[256] = {'\0'};
+    EVENTS event = setEvent();
+    STUDENTQUEUE *queue = {0};
+    int64_t input = 0;
+    while(1){
+        menuPrint("eventExport", 1, 1);
+        fgets(buffer, 256, stdin);
+        switch(int64FromString(buffer)){
+            case 0:
+                return;
+            case 1:
+                advancedPrint("Evento para a exportar ", 1, 1, 0);
+                fgets(buffer, 256, stdin);
+                input = int64FromString(buffer);
+                if(getEvent(&event, int64FromString(buffer)) != 0){
+                    menuPrint("eventNonExists", 1, 1);
+                    continue;
+                }
+                sprintf(dir, "participacaoEvento%ld.txt", input);
+                queue = getEventQueue(queues, input);
+                exportParticipationReport(input, *queue, dir);
+                break;
+            case 2:
+                advancedPrint("Evento para a exportar ", 1, 1, 0);
+                fgets(buffer, 256, stdin);
+                input = int64FromString(buffer);
+                if(getEvent(&event, input) != 0){
+                    menuPrint("eventNonExists", 1, 1);
+                    continue;
+                }
+                sprintf(dir, "AlunosEvento%ld.csv", input);
+                queue = getEventQueue(queues, input);
+                exportEventSubscriptions(input, *queue, dir);
+                break;
+            default:
+                continue;
+        }
+    }
 }
 
 

@@ -32,6 +32,10 @@ void freeList(STUDENTLIST *head);
 
 void convertFromTimestamp(time_t timestamp, int* day, int* month, int* year);
 
+void exportParticipationReport(int eventId, STUDENTQUEUE queue, const char *filename);
+
+void exportEventSubscriptions(int eventId, STUDENTQUEUE queue, const char *filename);
+
 time_t notificationTimestamp(time_t timestamp);
 
 time_t convertToTimestamp(int day, int month, int year);

@@ -9,6 +9,7 @@
 //events
 #include "./studentll.c"
 #include "./sorts.c"
+#include "./exports.c"
 
 STUDENTQUEUE *getEventQueue(STUDENTQUEUE *queues, int eventId){
     int64_t totalQueues = readTotalEvents();
