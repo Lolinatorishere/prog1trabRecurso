@@ -400,6 +400,36 @@ cleanup:
     return 0;
 }
 
+int searchForEventId(char **string, STUDENTQUEUE *queues, int searchId) {
+    int64_t eventTotal = readTotalEvents(),
+            index = 0;
+    EVENTS *events = (EVENTS*) malloc(sizeof(EVENTS) * (eventTotal + 1)),
+           event = setEvent(),
+           *temp = NULL;
+    int error = 0;
+    STUDENTQUEUE *queue = NULL;
+    if (!events)
+        return -1;
+    queue = getEventQueue(queues, searchId);
+    if(!queue){
+        error = -1;
+        goto cleanup;
+    }
+    error = loadEventData(events);
+    if (error != 0)
+        goto cleanup;
+    temp = searchEventId(events, eventTotal, searchId, &index);
+    copyEvent(&event, *temp);
+    if (event.eventId = -1)
+        goto cleanup;
+    error = createEventString(string, &event, queue, 1, 1, 0);
+    if (error != 0)
+        goto cleanup;
+cleanup:
+    free(events);
+    return error;
+}
+
 int getNonPlanedEvents(char **string, STUDENTQUEUE *queue, int eventsPerPage, int *page, char *special){
     int64_t eventTotal = readTotalEvents();
     EVENTS *events = calloc(eventTotal + 1, sizeof(EVENTS));

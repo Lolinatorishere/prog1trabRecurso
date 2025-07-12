@@ -142,8 +142,272 @@ void eventExportMenu(){
 
 }
 
+
+//    int limit; //max students
+//    int status; //-1 canceled, 0 concluded, 1 planed
+//    time_t date;//unix time, aka seconds since 1970
+//    char location[256];
+//    char eventName[256];
+//    char eventDesc[256];
+
+
+int editEventStudents(int eventId) {
+    syscls;
+    int input = 0,
+        i = 0,
+        studentId = 0;
+    char buffer[256] = {'\0'},
+         studentBuffer[512] = {'\0'},
+         dir[512],
+         *string = NULL;
+    USERS user = setUser();
+    STUDENTQUEUE *queue = NULL;
+    STUDENTLIST *current = NULL,
+                *node = NULL;
+    LISTHELPER *fileupdate = NULL;
+    queue = getEventQueue(queues, eventId);
+    string = calloc((queue->total + 1) * (256 * 3), sizeof(char));
+    if(!string )
+        goto cleanup;
+    while(1){
+        strcpy(string, " ");
+        current = queue->head;
+        i = 0;
+        while (current && i < queue->total) {
+            getUser(&user, current->studentId);
+            sprintf(studentBuffer, "ID: %d / nome: %s / Participou: %s\n",
+                    current->studentId,
+                    user.studentName ? user.studentName : "N/A",  // defensive
+                    current->participou ? "Sim" : "Não");
+            strcat(string, studentBuffer);
+            current = current->next;
+            i++;
+        }
+        if(queue->total == 0)
+            addPageInfo(&string, 0, 1, 1, "\n1 - Adicionar Estudante\n2 - Remover Estudante\n3 - Alternar Participação\n0 - Voltar\n","Estudantes");
+        else
+            addPageInfo(&string, 0, queue->total, queue->total, "\n1 - Adicionar Estudante\n2 - Remover Estudante\n3 - Alternar Participação\n0 - Voltar\n","Estudantes");
+        advancedPrint(string, 1, 1, 0);
+        fgets(buffer, sizeof(buffer), stdin);
+        switch(int64FromString(buffer)){
+            case 1:
+                printf("ID do novo estudante: ");
+                fgets(buffer, sizeof(buffer), stdin);
+                studentId = int64FromString(buffer);
+                if(studentId < 1){
+                    printf("\nid invalido\n");
+                    sleep(1);
+                    continue;
+                }
+                node = queue->head;
+                while(node){
+                    if(node->studentId == studentId){
+                        printf("Estudante já existe.\n");
+                        sleep(1);
+                        break;
+                    }
+                    node = node->next;
+                }
+                if(node)
+                    break;
+                insertEnd(&queue->head, studentId, false);
+                queue->tail = getLast(queue->head);
+                queue->total++;
+                printf("Estudante adicionado.\n");
+                saveEventStudents(queue, eventId);
+                refreshAllQueues(queues);
+                loadEventStudents(queues);
+                sleep(1);
+                break;
+            case 2:
+                printf("ID do estudante a remover: ");
+                fgets(buffer, sizeof(buffer), stdin);
+                studentId = int64FromString(buffer);
+                if(deleteStudentNode(&queue->head, studentId)){
+                    queue->tail = getLast(queue->head);
+                    queue->total--;
+                    printf("Estudante removido.\n");
+                } else {
+                    printf("Estudante não encontrado.\n");
+                }
+                saveEventStudents(queue, eventId);
+                refreshAllQueues(queues);
+                loadEventStudents(queues);
+                sleep(1);
+                break;
+            case 3:
+                printf("ID do estudante a alterar participação: ");
+                fgets(buffer, sizeof(buffer), stdin);
+                studentId = int64FromString(buffer);
+                node = queue->head;
+                while (node) {
+                    if (node->studentId == studentId) {
+                        node->participou = !node->participou;
+                        printf("Participação atualizada.\n");
+                        break;
+                    }
+                    node = node->next;
+                }
+                if(!node)
+                    printf("Estudante não encontrado.\n");
+                sleep(1);
+                break;
+            case 0:
+                goto cleanup;
+            default:
+                printf("Opção inválida.\n");
+                sleep(1);
+        }
+    }
+    goto cleanup;
+cleanup:
+    if(string)
+        free(string);
+    return 0;
+}
+
+int editingEvent(char **menuText, int page, int selectedID){
+    EVENTS event = setEvent(),
+           editer = setEvent();
+    char editFunc[] = "\n1 - Nome\n2 - Descricao\n3 - Local\n4 - Limite\n5 - Estado\n6 - Data\n7 - Estudantes\n0 - Voltar\n",
+         buffer[256];
+    int input = 0,
+        input1 = 0;
+    if (getEvent(&event, selectedID) < 0 || event.eventId == -1) {
+        menuPrint("eventNonExists", 1, 1);
+        sleep(1);
+        return -1;
+    }
+    while(1){
+        strcpy((*menuText), "\n");
+        editer = event;  // start with current event state
+        searchForEventId(menuText, queues, selectedID);
+        size_t newSize = strlen(*menuText) + strlen(editFunc) + 2;
+        char *temp = realloc(*menuText, newSize);
+        if (!temp) {
+            printf("Erro de memória.\n");
+            return -1;
+        }
+        *menuText = temp;
+        strcat(*menuText, editFunc);
+        advancedPrint(*menuText, 1, 1, 1);
+        fgets(buffer, 256, stdin);
+        if (buffer[0] == '0')
+            break;
+        input = int64FromString(buffer);
+        if (buffer[0] == '\n' || buffer[0] == '\0')
+            continue;
+        switch(input){
+            case 1:
+                printf("\nNovo Nome: ");
+                fgets(editer.eventName, sizeof(editer.eventName), stdin);
+                trim(editer.eventName);
+                if (strlen(editer.eventName) < 1)
+                    continue;
+                break;
+            case 2:
+                printf("\nNova Descrição: ");
+                fgets(editer.eventDesc, sizeof(editer.eventDesc), stdin);
+                trim(editer.eventDesc);
+                if (strlen(editer.eventDesc) < 1) continue;
+                break;
+            case 3:
+                printf("\nNovo Local: ");
+                fgets(editer.location, sizeof(editer.location), stdin);
+                trim(editer.location);
+                if (strlen(editer.location) < 1)
+                    continue;
+                break;
+            case 4:
+                printf("\nNovo Limite de Estudantes: ");
+                fgets(buffer, 256, stdin);
+                input1 = int64FromString(buffer);
+                if(input1 > 0)
+                    editer.limit = input1;
+                else
+                    printf("Input Invalido");
+                break;
+            case 5:
+                printf("Novo Estado\n1:planeado\n0:concluido\n2:cancelado\ninput:");
+                fgets(buffer, 256, stdin);
+                input1 = int64FromString(buffer);
+                if(input1 > 0 && input < 2)
+                    editer.status = input1;
+                else if(input1 == 2)
+                    editer.status = -1;
+                else
+                    printf("\nEstado Invalido\n");
+                break;
+            case 6:
+                int day = 0,
+                    month = 0,
+                    year = 0;
+                printf("\nNova Data (YYYY-MM-DD): ");
+                printf("yyyy: ");
+                fgets(buffer, 256, stdin);
+                year = int64FromString(buffer);
+                if (year < 1900 || year > 2100) {
+                    printf("Erro Tente novamente.\n");
+                    continue;
+                }
+                printf("mm: ");
+                fgets(buffer, 256, stdin);
+                month = int64FromString(buffer);
+                if (month < 1 || month > 12) {
+                    printf("Erro Tente novamente.\n");
+                    continue;
+                }
+                printf("dd: ");
+                fgets(buffer, 256, stdin);
+                day = int64FromString(buffer);
+                if (day < 1 || day > 31) {
+                    printf("Erro Tente novamente.\n");
+                    continue;
+                }
+                editer.date = convertToTimestamp(day, month, year);
+                break;
+            case 7:
+                editEventStudents(event.eventId);
+                continue;
+            default:
+                printf("Opção inválida.\n");
+                sleep(1);
+                continue;
+        }
+        if(updateEvent(event.eventId, &editer)){
+            printf("Erro ao atualizar evento.\n");
+            sleep(1);
+            return -1;
+        }
+        printf("Evento atualizado com sucesso.\n");
+        event = editer;
+        sleep(1);
+        break;
+    }
+    return 0;
+}
+
 void eventAlterMenu(){
-    
+    char extras[256] = "sel \"ID\" para editar Evento\n";
+    int page = 0;
+    int input = 0;
+    char buffer[256] = {'\0'};
+    char *menuText = NULL;
+    while(buffer[0] != '0'){
+        input = 0;
+        getAllEvents(&menuText, queues, 5, &page, extras, 0);
+        advancedPrint(menuText, 1, 1, 1);
+        fgets(buffer, 256, stdin);
+        if(buffer[0] == '+')
+            page++;
+        if(buffer[0] == '-')
+            page--;
+        if(buffer[0] == 's' && buffer[1] == 'e' && buffer[2] == 'l')
+            editingEvent(&menuText, page, int64FromString(buffer));
+    }
+    if(menuText)
+        free(menuText);
+    return;
 }
 
 void notifyEventMenu(){

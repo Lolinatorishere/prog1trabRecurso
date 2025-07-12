@@ -111,6 +111,28 @@ int loadEventStudents(STUDENTQUEUE *queues) {
     return 0;
 }
 
+int saveEventStudents(STUDENTQUEUE *queue, int eventId){
+    char dir[512] = {'\0'};
+    snprintf(dir, sizeof(dir), "%s/%d", EVENTSUBDIR, eventId);
+    FILE *fp = fopen(dir, "wb");
+    if (!fp)
+        return -1;
+    int64_t total = queue->total;
+    fwrite(&total, sizeof(int64_t), 1, fp);
+    STUDENTLIST *curr = queue->head;
+    for (int i = 0 ; i < total && curr != NULL ; i++) {
+        LISTHELPER fileupdate;
+        memset(&fileupdate, 0, sizeof(LISTHELPER));
+        fileupdate.studentId = curr->studentId;
+        fileupdate.participou = curr->participou;
+        fwrite(&fileupdate.studentId, sizeof(fileupdate.studentId), 1, fp);
+        fwrite(&fileupdate.participou, sizeof(fileupdate.participou), 1, fp);
+        curr = curr->next;
+    }
+    fclose(fp);
+    return 0;
+}
+
 time_t convertToTimestamp(int day, int month, int year){
     struct tm timestruct = {0};
     timestruct.tm_mday = day;

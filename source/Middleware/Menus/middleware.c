@@ -7,7 +7,7 @@
 #include"../../../headers/stringParse.h"
 #include"../../../headers/user.h"
 
-int addPageInfo(char **string, int page, int itemsPerPage, int itemTotal, char *specialCtrls, char *itemType){
+/*function*/int addPageInfo(char **string, int page, int itemsPerPage, int itemTotal, char *specialCtrls, char *itemType){
     char *pageExtras = (char*) malloc(sizeof(char)*256),
          pageInfo[256] = {'\0'},
          pageCur[256] = {'\0'},
@@ -57,7 +57,7 @@ int addPageInfo(char **string, int page, int itemsPerPage, int itemTotal, char *
         error = -1;
         goto cleanup;
     }
-    strncpy(move, (*string), strlen((*string)));
+    strcpy(move, (*string));
     char *tmppage = (char*) realloc((*string), sizeof(char) * (strlen((*string)) + strlen(pagetotal) + strlen(pageExtras) + 64));
     if(!tmppage){
         error = -1;

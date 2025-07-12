@@ -1,4 +1,5 @@
 
+// Function to create a new node
 STUDENTLIST *createStudentNode(int studentId, bool participou){
     STUDENTLIST *newNode = malloc(sizeof(STUDENTLIST));
     if(!newNode)
@@ -25,14 +26,23 @@ void insertEnd(STUDENTLIST **head, int studentId, bool participou){
     newNode->prev = temp;
 }
 
-void deleteStudentNode(STUDENTLIST **head, int studentId){
+STUDENTLIST *getLast(STUDENTLIST *head){
+    if (!head)
+        return NULL;
+    STUDENTLIST *current = head;
+    while (current->next != NULL)
+        current = current->next;
+    return current;
+}
+
+bool deleteStudentNode(STUDENTLIST **head, int studentId){
     if(*head == NULL)
-        return;
+        return false;
     STUDENTLIST *temp = *head;
     while(temp != NULL && temp->studentId != studentId)
         temp = temp->next;
     if(temp == NULL)
-        return;
+        return false;
     if(temp->prev != NULL)
         temp->prev->next = temp->next;
     else
@@ -40,6 +50,7 @@ void deleteStudentNode(STUDENTLIST **head, int studentId){
     if(temp->next != NULL) 
         temp->next->prev = temp->prev;
     free(temp);
+    return true;
 }
 
 STUDENTLIST *searchStudentNode(STUDENTLIST *head, int studentId){

@@ -2,6 +2,8 @@
 #define DATAMIDDLEWARE_H
 #include "../structs.h"
 
+bool deleteStudentNode(STUDENTLIST **head, int studentId);
+
 int compareEventsByName(const void *a, const void *b);
 
 int compareEventsByStatus(const void *a, const void *b);
@@ -12,24 +14,26 @@ int compareStudentQueuesByTotal(const void *a, const void *b);
 
 int loadEventStudents(STUDENTQUEUE *queues);
 
+int saveEventStudents(STUDENTQUEUE *queue, int eventId);
+
 STUDENTQUEUE *createAllQueues();
 
 STUDENTQUEUE *getEventQueue(STUDENTQUEUE *queues, int eventId);
 
 STUDENTLIST *searchStudentNode(STUDENTLIST *head, int studentId);
 
-void refreshAllQueues(STUDENTQUEUE *queues);
+STUDENTLIST *getLast(STUDENTLIST *head);
 
-void deleteStudentNode(STUDENTLIST **head, int studentId);
+void refreshAllQueues(STUDENTQUEUE *queues);
 
 void insertEnd(STUDENTLIST **head, int studentId, bool participou);
 
 void freeList(STUDENTLIST *head);
 
-time_t convertToTimestamp(int day, int month, int year);
-
 void convertFromTimestamp(time_t timestamp, int* day, int* month, int* year);
 
 time_t notificationTimestamp(time_t timestamp);
+
+time_t convertToTimestamp(int day, int month, int year);
 
 #endif

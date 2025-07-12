@@ -8,7 +8,7 @@ int64_t readTotalEvents();
 
 int createEvent(EVENTS eventCreate);
 
-int updateEvent(int eventId, char *eventName, time_t *date, char *location, int *limit, int *status);
+int updateEvent(int id, EVENTS *update);
 
 int deleteEvent(int eventId);
 
@@ -19,5 +19,7 @@ int getAllEventIds(int **eventIds);
 int getAllEvents(char **string, STUDENTQUEUE *queue, int eventsPerPage, int *page, char *special, int orderBy);
 
 int getNonPlanedEvents(char **string, STUDENTQUEUE *queue, int eventsPerPage, int *page, char *special);
+
+int searchForEventId(char **string, STUDENTQUEUE *queues, int searchId);
 
 #endif
