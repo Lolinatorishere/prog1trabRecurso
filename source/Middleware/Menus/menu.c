@@ -148,17 +148,18 @@ void loggedInAdmin(USERS *user){
 
 void loggedInUser(USERS *user){
     char buffer[256];
-    menuPrint("User", 1, 1);
-    printf("input:");
-    fgets(buffer, 256, stdin);
-    int64_t input = int64FromString(buffer);
+    int64_t input = 0;
     while(1){
+        menuPrint("User", 1, 1);
+        printf("input:");
+        fgets(buffer, 256, stdin);
+        input = int64FromString(buffer);
         switch(input){
             case 1:
                 userEvent(user);
                 break;
             case 2:
-                userInscriptioins(user);
+                //see stats;
                 break;
             case 3:
                 userNotifs(user);

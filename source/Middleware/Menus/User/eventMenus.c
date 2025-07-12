@@ -105,7 +105,39 @@ void userEventIndexMenu(USERS *user){
     }
 }
 
-void userInscriptioins(USERS *user){
-    
-    return;
+void listUserEvents(USERS *user){
+    int found = 0;
+    char string[512] = {'\0'},
+         buffer[256] = {'\0'};
+    int64_t eventCount = readTotalEvents();
+    EVENTS event = setEvent();
+    int day = 0,
+        month = 0,
+        year = 0;
+    sprintf(string,"Eventos em que o usuario \"%s\" (ID: %d) esta inscrito:\n ", user->studentName, user->userId);
+    advancedPrint(string, 1, 1, 0);
+    printf("\n");
+    for(int i = 0 ; i < eventCount ; i++) {
+        STUDENTLIST *curr = queues[i].head;
+        while(curr){
+            if (curr->studentId != user->userId){
+                curr = curr->next;
+                continue;
+            }
+            getEvent(&event, queues[i].eventId);
+            convertFromTimestamp(event.date, &day, &month, &year);
+            printf("Evento ID: %d | Nome: %s | Local: %s | Data: %i/%i/%i\n",
+                event.eventId,
+                event.eventName,
+                event.location,
+                day, month, year
+            );
+            found++;
+            break;
+        }
+    }
+    if (found == 0)
+        printf("nao esta inscrito em eventos.\n");
+    printf("\nCarregue uma tecla para sair\n");
+    fgets(buffer, 256, stdin);
 }
