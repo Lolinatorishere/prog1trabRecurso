@@ -28,6 +28,8 @@ void refreshAllQueues(STUDENTQUEUE *queues);
 
 void insertEnd(STUDENTLIST **head, int studentId, bool participou);
 
+void insertQueue(STUDENTQUEUE *queue, int studentId, bool participou);
+
 void freeList(STUDENTLIST *head);
 
 void convertFromTimestamp(time_t timestamp, int* day, int* month, int* year);

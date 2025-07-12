@@ -430,7 +430,7 @@ cleanup:
     return error;
 }
 
-int getNonPlanedEvents(char **string, STUDENTQUEUE *queue, int eventsPerPage, int *page, char *special){
+int getNonPlanedEvents(char **string, STUDENTQUEUE *queue, int eventsPerPage, int *page, char *special, int flip){
     int64_t eventTotal = readTotalEvents();
     EVENTS *events = calloc(eventTotal + 1, sizeof(EVENTS));
     EVENTS *filteredEvents = calloc(eventTotal + 1, sizeof(EVENTS));
@@ -442,11 +442,20 @@ int getNonPlanedEvents(char **string, STUDENTQUEUE *queue, int eventsPerPage, in
     error = loadEventData(events);
     if (error != 0)
         goto cleanup;
-    for (int64_t i = 0 ; i < eventTotal ; i++){
-        if (events[i].status == 1)
-            continue;
-        copyEvent(&filteredEvents[filteredCount], events[i]);
-        filteredCount++;
+    if(flip == 0){
+        for (int64_t i = 0 ; i < eventTotal ; i++){
+            if (events[i].status == 1)
+                continue;
+            copyEvent(&filteredEvents[filteredCount], events[i]);
+            filteredCount++;
+        }
+    }else{
+        for (int64_t i = 0 ; i < eventTotal ; i++){
+            if (events[i].status != 1)
+                continue;
+            copyEvent(&filteredEvents[filteredCount], events[i]);
+            filteredCount++;
+        }
     }
     maxPages = filteredCount / eventsPerPage;
     if (filteredCount % eventsPerPage != 0)

@@ -21,8 +21,10 @@ STUDENTQUEUE *queues = NULL;
 
 //copy paste menus code legibility.
 //may fk with compiler errors
-#include "./Admin/userMenus.c"
 #include "./Admin/eventMenus.c"
+#include "./User/eventMenus.c"
+#include "./Admin/userMenus.c"
+#include "./User/userMenus.c"
 
 int startUp(int recursion){
     char buffer[256] = {'\0'};
@@ -153,13 +155,13 @@ void loggedInUser(USERS *user){
     while(1){
         switch(input){
             case 1:
-                //1 - Ver Eventos
+                userEvent(user);
                 break;
             case 2:
-                //2 - Ver Inscricoes
+                userInscriptioins(user);
                 break;
             case 3:
-                //3 - Ver notificacoes
+                userNotifs(user);
                 break;
             case 0:
                 printf("Logout de %s, Adeus\n", user->userName);

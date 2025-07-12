@@ -181,15 +181,6 @@ void eventExportMenu(){
     }
 }
 
-
-//    int limit; //max students
-//    int status; //-1 canceled, 0 concluded, 1 planed
-//    time_t date;//unix time, aka seconds since 1970
-//    char location[256];
-//    char eventName[256];
-//    char eventDesc[256];
-
-
 int editEventStudents(int eventId) {
     syscls;
     int input = 0,
@@ -466,7 +457,7 @@ void eventDeleteMenu(){
          buffer[256] = {'\0'};
     while(buffer[0] != '0'){
         event = setEvent();
-        getNonPlanedEvents(&menuText, queues, 5, &page, extras);
+        getNonPlanedEvents(&menuText, queues, 5, &page, extras, 0);
         advancedPrint(menuText, 1, 1, 1);
         fgets(buffer, 256, stdin);
         if(buffer[0] == '+')

@@ -11,6 +11,35 @@ STUDENTLIST *createStudentNode(int studentId, bool participou){
     return newNode;
 }
 
+void insertQueue(STUDENTQUEUE *queue, int studentId, bool participou) {
+    if (!queue) {
+        printf("Erro: fila inválida.\n");
+        return;
+    }
+    STUDENTLIST *current = queue->head;
+    while (current) {
+        if (current->studentId == studentId) {
+            printf("O estudante já está na fila.\n");
+            return;
+        }
+        current = current->next;
+    }
+    STUDENTLIST *newNode = createStudentNode(studentId, participou);
+    if(!newNode){
+        perror("Erro ao alocar memória para novo estudante");
+        return;
+    }
+    newNode->next = NULL;
+    newNode->prev = queue->tail;
+    // Append to tail
+    if (queue->tail)
+        queue->tail->next = newNode;
+    else
+        queue->head = newNode;
+    queue->tail = newNode;
+    queue->total++;
+}
+
 void insertEnd(STUDENTLIST **head, int studentId, bool participou){
     STUDENTLIST *newNode = createStudentNode(studentId, participou);
     if(!newNode)
