@@ -26,7 +26,7 @@ int compareEventsByDate(const void *a, const void *b){
 int compareStudentQueuesByTotal(const void *a, const void *b) {
     const STUDENTQUEUE *queueA = (const STUDENTQUEUE *)a;
     const STUDENTQUEUE *queueB = (const STUDENTQUEUE *)b;
-    return queueA->total - queueB->total;
+    return queueB->total - queueA->total;
 }
 
 int compareEventsById(const void *a, const void *b){

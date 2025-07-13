@@ -131,7 +131,7 @@ cleanup:
     return 0;
 }
 
-int createEventString(char **string, EVENTS *events, STUDENTQUEUE *queue, int eventTotal, int eventsPerPage, int page){
+int createEventString(char **string, EVENTS *events, STUDENTQUEUE *queues, int eventTotal, int eventsPerPage, int page){
     /* should return something with this type of structure
      * / nome:eventName | Id: eventID
      * | data: date converted
@@ -161,7 +161,7 @@ int createEventString(char **string, EVENTS *events, STUDENTQUEUE *queue, int ev
         if(i >= eventTotal)
             break;
         EVENTS event = events[i];
-        STUDENTQUEUE *eventQueue = getEventQueue(queue, event.eventId);
+        STUDENTQUEUE *eventQueue = getEventQueue(queues, event.eventId);
         int total = 0;
         if(!eventQueue)
             total = 0;
@@ -337,11 +337,12 @@ cleanup:
     return error;
 }
 
-int getAllEvents(char **string, STUDENTQUEUE *queue, int eventsPerPage, int *page, char *special, int orderBy){
+int getAllEvents(char **string, STUDENTQUEUE *queues, int eventsPerPage, int *page, char *special, int orderBy){
     int64_t eventTotal = 0;
         eventTotal = readTotalEvents();
     EVENTS *events = calloc(eventTotal + 1, sizeof(EVENTS)),
-           *eventsorted = calloc(eventTotal + 1, sizeof(EVENTS));
+           *eventsorted = calloc(eventTotal + 1, sizeof(EVENTS)),
+            event = setEvent();
     STUDENTQUEUE *copy = calloc(eventTotal + 1, sizeof(STUDENTQUEUE));
     int maxPages = eventTotal/eventsPerPage,
         error = 0;
@@ -371,15 +372,15 @@ int getAllEvents(char **string, STUDENTQUEUE *queue, int eventsPerPage, int *pag
             break;
         case 5://total;
             for(int64_t i = 0 ; i < eventTotal ; i++){
-                copy[i].eventId = queue[i].eventId;
-                copy[i].total = queue[i].total;
-                copy[i].head = queue[i].head;
-                copy[i].tail = queue[i].tail;
+                copy[i].eventId = queues[i].eventId;
+                copy[i].total = queues[i].total;
+                copy[i].head = queues[i].head;
+                copy[i].tail = queues[i].tail;
             }
             qsort(copy, eventTotal, sizeof(STUDENTQUEUE), compareStudentQueuesByTotal);
             for(int64_t i = 0 ; i < eventTotal ; i++){
                 eventsorted[i] = setEvent();
-                copyEvent(&eventsorted[i], events[copy[i].eventId]);
+                getEvent(&eventsorted[i], copy[i].eventId);
             }
             for(int64_t i = 0 ; i < eventTotal ; i++)
                 copyEvent(&events[i], eventsorted[i]);
@@ -387,7 +388,7 @@ int getAllEvents(char **string, STUDENTQUEUE *queue, int eventsPerPage, int *pag
         default:
             break;
     }
-    error = createEventString(string, events, queue, eventTotal, eventsPerPage, *page);
+    error = createEventString(string, events, queues, eventTotal, eventsPerPage, *page);
     if(error != 0)
         goto cleanup;
     addPageInfo(string, *page, eventsPerPage, eventTotal, special, "Eventos");

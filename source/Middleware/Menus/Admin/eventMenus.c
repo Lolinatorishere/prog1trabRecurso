@@ -373,7 +373,7 @@ int editingEvent(char **menuText, int page, int selectedID){
                 printf("Novo Estado\n1:planeado\n0:concluido\n2:cancelado\ninput:");
                 fgets(buffer, 256, stdin);
                 input1 = int64FromString(buffer);
-                if(input1 >= 0 && input < 2)
+                if(input1 >= 0 && input1 < 2)
                     editer.status = input1;
                 else if(input1 == 2)
                     editer.status = -1;

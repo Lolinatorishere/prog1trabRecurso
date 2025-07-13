@@ -1,0 +1,7 @@
+Relatório de Participação - Evento ID: 1
+
+ID Aluno | Nome Aluno | Participou
+-------------------------------------
+1         |                      | Sim
+2         | asdg                 | Nao
+1431741664 |                      | Nao
